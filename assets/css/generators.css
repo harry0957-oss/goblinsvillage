@@ -1,0 +1,233 @@
+/* Generator-specific styles to polish layouts without overriding the global look. */
+
+.gv-container {
+    max-width: 1180px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.generator-layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .generator-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.generator-panel h3 {
+    margin-bottom: 12px;
+}
+
+.generator-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 10px 14px;
+    align-items: center;
+}
+
+.form-grid label {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.form-grid .goblin-input {
+    margin: 0;
+    font-size: 0.95rem;
+    padding: 10px;
+}
+
+.generator-actions {
+    margin-top: 6px;
+    gap: 12px;
+}
+
+.generator-actions .goblin-btn,
+.generator-actions .ghost-btn {
+    font-size: 0.95rem;
+    padding: 12px 16px;
+}
+
+.generator-actions .copy-status {
+    flex: 1;
+    align-self: center;
+}
+
+.generator-output {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.identity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px 16px;
+}
+
+.identity-grid div {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(92, 64, 29, 0.5);
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.identity-grid strong {
+    display: block;
+    color: #f0c674;
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+}
+
+.identity-grid span {
+    font-size: 1rem;
+    color: #f7f2e7;
+}
+
+.npc-card p,
+.npc-card ul {
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.npc-card ul {
+    padding-left: 20px;
+}
+
+.npc-card .placeholder-text {
+    color: #c6b691;
+    font-style: italic;
+}
+
+.generator-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    margin-top: 24px;
+}
+
+.generator-hub-card {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(92, 64, 29, 0.7);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.hub-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+}
+
+.hub-title {
+    margin: 4px 0;
+    color: #f7d979;
+    font-family: 'Cinzel', serif;
+}
+
+.hub-label {
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #c6b691;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.hub-description {
+    margin: 6px 0 0 0;
+    line-height: 1.5;
+    color: #e8dcc7;
+}
+
+.coming-soon {
+    margin-top: 24px;
+    padding: 12px 14px;
+    border: 1px dashed rgba(247, 217, 121, 0.35);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.35);
+    color: #dcd0b6;
+}
+
+.breadcrumb {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    color: #d7c7a4;
+}
+
+.breadcrumb a {
+    color: #f7d979;
+    text-decoration: none;
+}
+
+.generator-note {
+    margin-top: 6px;
+    color: #c6b691;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.admin-card {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(92, 64, 29, 0.7);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.admin-card h3 {
+    margin-top: 0;
+    color: #f7d979;
+    font-family: 'Cinzel', serif;
+}
+
+.file-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+    align-items: center;
+}
+
+.preview-box {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid rgba(92, 64, 29, 0.7);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #e8dcc7;
+    line-height: 1.5;
+}
+
+.feedback {
+    margin-top: 8px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.feedback.success {
+    color: #a6e3a1;
+}
+
+.feedback.error {
+    color: #f38ba8;
+}
+
+.feedback.info {
+    color: #f7d979;
+}

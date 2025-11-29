@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Goblin's Village – Generators Admin</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/generators.css">
+</head>
+<body>
+    <div class="goblin-ui-wrapper">
+        <div id="site-header"></div>
+
+        <main>
+            <div class="goblin-town-square">
+                <div class="town-col-center" style="width:100%; max-width:1200px;">
+                    <div class="parchment-box">
+                        <section class="page-hero">
+                            <h1 class="news-title">Generators Admin</h1>
+                            <p>This local tool previews and preps JSON data that powers the generators. Uploads are not persisted on GitHub Pages, but when the site moves to a full server these buttons can call real endpoints.</p>
+                        </section>
+
+                        <div class="generator-panel" style="margin-bottom:16px;">
+                            <h3>Admin Access</h3>
+                            <div class="form-grid" style="grid-template-columns: 160px 1fr;">
+                                <label for="admin-password">Admin Password</label>
+                                <input class="goblin-input" type="password" id="admin-password" placeholder="Enter admin key" />
+                            </div>
+                            <p class="generator-note">Password is stored only in this page session and will accompany future API calls.</p>
+                        </div>
+
+                        <div class="admin-grid" id="admin-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
+    </div>
+
+    <script src="assets/js/layout.js"></script>
+    <script src="assets/js/generatorsAdmin.js"></script>
+</body>
+</html>
