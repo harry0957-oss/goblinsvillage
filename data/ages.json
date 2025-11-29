@@ -1,0 +1,15 @@
+{
+  "_comment": "Age ranges by race; UI also accepts manual input for edge cases like liches or prodigies.",
+  "races": {
+    "human": {
+      "adult": [18, 40],
+      "middle": [41, 65],
+      "elder": [66, 90]
+    },
+    "elf": {
+      "adult": [60, 200],
+      "middle": [201, 400],
+      "elder": [401, 700]
+    }
+  }
+}
