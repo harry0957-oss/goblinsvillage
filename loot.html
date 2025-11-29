@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Cursed Loot Generator</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
     <style>
         body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Courier New', Courier, monospace; color: #d4d4d4; }
         #ui-container {
@@ -29,23 +30,31 @@
     </style>
 </head>
 <body>
-    <a href="/" style="position: absolute; top: 20px; left: 20px; color: #888; text-decoration: none; font-family: 'Courier New', monospace; font-weight: bold; z-index: 100; border: 1px solid #444; padding: 10px; background: rgba(0,0,0,0.8);">← RETURN TO VILLAGE</a>
+    <div class="goblin-ui-wrapper">
+        <div id="site-header"></div>
 
-    <div id="ui-container">
-        <h1>THE NECROTIC VAULT</h1>
-        <p>Goblin's Village // Cursed Item Database</p>
+        <main>
+            <a href="/" style="position: absolute; top: 20px; left: 20px; color: #888; text-decoration: none; font-family: 'Courier New', monospace; font-weight: bold; z-index: 100; border: 1px solid #444; padding: 10px; background: rgba(0,0,0,0.8);">← RETURN TO VILLAGE</a>
+
+            <div id="ui-container">
+                <h1>THE NECROTIC VAULT</h1>
+                <p>Goblin's Village // Cursed Item Database</p>
+            </div>
+
+            <div id="card">
+                <button id="close-btn" onclick="closeCard()">X</button>
+                <h2 id="item-name">Item Name</h2>
+                <div class="stat"><span class="label">Type:</span> <span id="item-type">Weapon</span></div>
+                <div class="stat"><span class="label">Value:</span> <span id="item-value">100gp</span></div>
+                <div class="stat"><span class="label">Description:</span> <span id="item-desc">...</span></div>
+                <div class="curse-text"><span class="label">CURSE:</span> <span id="item-curse">...</span></div>
+            </div>
+
+            <div id="instructions">CLICK THE ORB TO SUMMON LOOT</div>
+        </main>
+
+        <div id="site-footer"></div>
     </div>
-
-    <div id="card">
-        <button id="close-btn" onclick="closeCard()">X</button>
-        <h2 id="item-name">Item Name</h2>
-        <div class="stat"><span class="label">Type:</span> <span id="item-type">Weapon</span></div>
-        <div class="stat"><span class="label">Value:</span> <span id="item-value">100gp</span></div>
-        <div class="stat"><span class="label">Description:</span> <span id="item-desc">...</span></div>
-        <div class="curse-text"><span class="label">CURSE:</span> <span id="item-curse">...</span></div>
-    </div>
-
-    <div id="instructions">CLICK THE ORB TO SUMMON LOOT</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
@@ -150,5 +159,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
+    <script src="/assets/js/layout.js"></script>
 </body>
 </html>
