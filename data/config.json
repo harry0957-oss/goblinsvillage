@@ -1,0 +1,20 @@
+{
+  "_comment": "Configure dropdown options. Extend races, genders, or aesthetics without touching JS logic.",
+  "races": [
+    { "id": "human", "label": "Human" },
+    { "id": "elf", "label": "Elf" },
+    { "id": "dwarf", "label": "Dwarf" },
+    { "id": "goblin", "label": "Goblin" }
+  ],
+  "genders": [
+    { "id": "male", "label": "Male" },
+    { "id": "female", "label": "Female" },
+    { "id": "neutral", "label": "Neutral" }
+  ],
+  "aesthetics": [
+    { "id": "attractive", "label": "Attractive" },
+    { "id": "plain", "label": "Plain" },
+    { "id": "rugged", "label": "Rugged" },
+    { "id": "sinister", "label": "Sinister" }
+  ]
+}

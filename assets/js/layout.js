@@ -9,6 +9,11 @@ function getBasePath() {
     return '/';
   }
 
+  // If we are at the root (e.g., "/index.html"), do not treat the filename as the repo name.
+  if (segments.length === 1 && segments[0].includes('.')) {
+    return '/';
+  }
+
   const repo = segments[0];
   const base = `/${repo}/`;
   return base;

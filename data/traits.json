@@ -1,0 +1,55 @@
+{
+  "_comment": "Traits are tagged snippets used by the generator. Extend per slot with tags like race, profession, town, or aesthetic.",
+  "traits": [
+    {
+      "slot": "physical",
+      "text": "A slim build, ink stained fingers and a posture that leans toward books rather than people.",
+      "tags": ["human", "wizard"]
+    },
+    {
+      "slot": "physical",
+      "text": "Broad shouldered, scarred knuckles and a nose broken more than once.",
+      "tags": ["guard", "rugged"]
+    },
+    {
+      "slot": "backstory",
+      "text": "Once apprenticed to a famed archmage, they left after a disastrous ritual that still haunts their dreams.",
+      "tags": ["wizard"]
+    },
+    {
+      "slot": "backstory",
+      "text": "Grew up trading favours and secrets in the alleys of a crowded city market.",
+      "tags": ["human", "merchant", "city"]
+    },
+    {
+      "slot": "motivation",
+      "text": "Amass enough coin to open a quiet shop far from danger.",
+      "tags": ["merchant"]
+    },
+    {
+      "slot": "motivation",
+      "text": "Unlock a forbidden spell that could shift the balance of power.",
+      "tags": ["wizard"]
+    },
+    {
+      "slot": "hook",
+      "text": "Knows a shortcut that avoids a dangerous patrol.",
+      "tags": ["merchant", "town"]
+    },
+    {
+      "slot": "hook",
+      "text": "Owes a life debt to a local crime boss.",
+      "tags": ["city"]
+    },
+    {
+      "slot": "voice",
+      "text": "Soft spoken and measured, with sudden bursts of excited rambling whenever magic is mentioned.",
+      "tags": ["wizard"]
+    },
+    {
+      "slot": "visual",
+      "text": "Ragged blue robes traced with faintly glowing runes, a staff crowned with a cracked crystal, and eyes that catch the light in unnatural ways.",
+      "tags": ["wizard", "attractive"]
+    }
+  ]
+}

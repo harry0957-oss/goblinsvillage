@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Goblin's Village – Data Admin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .admin-helper p { color: #2b1d0e; }
+    .admin-status { font-weight: bold; }
+    .status-valid { color: #4caf50; }
+    .status-invalid { color: #e57373; }
+    .preview-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(92, 64, 29, 0.6);
+      border-radius: 8px;
+      padding: 10px;
+      color: #e6d3ae;
+      max-height: 220px;
+      overflow: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+    .admin-note { color: #e6d3ae; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <div class="goblin-ui-wrapper">
+    <div id="site-header"></div>
+
+    <main>
+      <div class="goblin-town-square">
+        <div class="town-col-center" style="width:100%; max-width:1200px;">
+          <div class="parchment-box admin-helper">
+            <section class="page-hero">
+              <h1 class="news-title">Data Admin (Local Helper)</h1>
+              <p>Use this page locally to validate and preview JSON for the NPC generator. To update goblinsvillage.com you still need to commit the files into the <code>/data</code> folder.</p>
+            </section>
+
+            <p class="admin-note">No uploads are sent anywhere. Choose a file to see a preview and validation notes.</p>
+
+            <div class="generator-grid">
+              <div class="generator-panel">
+                <h3>Config</h3>
+                <input type="file" accept="application/json" id="config-file" class="goblin-input" />
+                <div id="config-status" class="admin-status"></div>
+                <div id="config-preview" class="preview-box">Awaiting file...</div>
+              </div>
+
+              <div class="generator-panel">
+                <h3>Names</h3>
+                <input type="file" accept="application/json" id="names-file" class="goblin-input" />
+                <div id="names-status" class="admin-status"></div>
+                <div id="names-preview" class="preview-box">Awaiting file...</div>
+              </div>
+
+              <div class="generator-panel">
+                <h3>Professions</h3>
+                <input type="file" accept="application/json" id="professions-file" class="goblin-input" />
+                <div id="professions-status" class="admin-status"></div>
+                <div id="professions-preview" class="preview-box">Awaiting file...</div>
+              </div>
+
+              <div class="generator-panel">
+                <h3>Towns</h3>
+                <input type="file" accept="application/json" id="towns-file" class="goblin-input" />
+                <div id="towns-status" class="admin-status"></div>
+                <div id="towns-preview" class="preview-box">Awaiting file...</div>
+              </div>
+
+              <div class="generator-panel">
+                <h3>Traits</h3>
+                <input type="file" accept="application/json" id="traits-file" class="goblin-input" />
+                <div id="traits-status" class="admin-status"></div>
+                <div id="traits-preview" class="preview-box">Awaiting file...</div>
+              </div>
+
+              <div class="generator-panel">
+                <h3>Ages</h3>
+                <input type="file" accept="application/json" id="ages-file" class="goblin-input" />
+                <div id="ages-status" class="admin-status"></div>
+                <div id="ages-preview" class="preview-box">Awaiting file...</div>
+              </div>
+            </div>
+
+            <p class="admin-note">Tip: keep the schema comments inside each JSON file to remember how to extend the generator without updating JavaScript.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+  </div>
+
+  <script src="assets/js/layout.js"></script>
+  <script>
+    const readers = {
+      config: document.getElementById('config-file'),
+      names: document.getElementById('names-file'),
+      professions: document.getElementById('professions-file'),
+      towns: document.getElementById('towns-file'),
+      traits: document.getElementById('traits-file'),
+      ages: document.getElementById('ages-file'),
+    };
+
+    const statusEls = {
+      config: document.getElementById('config-status'),
+      names: document.getElementById('names-status'),
+      professions: document.getElementById('professions-status'),
+      towns: document.getElementById('towns-status'),
+      traits: document.getElementById('traits-status'),
+      ages: document.getElementById('ages-status'),
+    };
+
+    const previewEls = {
+      config: document.getElementById('config-preview'),
+      names: document.getElementById('names-preview'),
+      professions: document.getElementById('professions-preview'),
+      towns: document.getElementById('towns-preview'),
+      traits: document.getElementById('traits-preview'),
+      ages: document.getElementById('ages-preview'),
+    };
+
+    function validateConfig(data) {
+      const messages = [];
+      if (!Array.isArray(data?.races)) messages.push('Missing races array.');
+      if (!Array.isArray(data?.genders)) messages.push('Missing genders array.');
+      if (!Array.isArray(data?.aesthetics)) messages.push('Missing aesthetics array.');
+      return { valid: messages.length === 0, messages };
+    }
+
+    function validateNames(data) {
+      const hasRaces = data && typeof data === 'object' && data.races;
+      return { valid: Boolean(hasRaces), messages: hasRaces ? [] : ['Expected races object keyed by race id.'] };
+    }
+
+    function validateProfessions(data) {
+      const isValid = Array.isArray(data?.professions);
+      return { valid: isValid, messages: isValid ? [] : ['Expected professions array.'] };
+    }
+
+    function validateTowns(data) {
+      const isValid = Array.isArray(data?.towns);
+      return { valid: isValid, messages: isValid ? [] : ['Expected towns array.'] };
+    }
+
+    function validateTraits(data) {
+      const traits = Array.isArray(data?.traits);
+      return { valid: traits, messages: traits ? [] : ['Expected traits array.'] };
+    }
+
+    function validateAges(data) {
+      const hasRaces = data && typeof data === 'object' && data.races;
+      return { valid: Boolean(hasRaces), messages: hasRaces ? [] : ['Expected races object keyed by race id.'] };
+    }
+
+    const validators = {
+      config: validateConfig,
+      names: validateNames,
+      professions: validateProfessions,
+      towns: validateTowns,
+      traits: validateTraits,
+      ages: validateAges,
+    };
+
+    function setStatus(key, valid, messages) {
+      const el = statusEls[key];
+      if (!el) return;
+      el.textContent = valid ? 'Valid shape detected.' : `Issues: ${messages.join(' ')}`;
+      el.className = `admin-status ${valid ? 'status-valid' : 'status-invalid'}`;
+    }
+
+    function setPreview(key, data) {
+      const el = previewEls[key];
+      if (!el) return;
+      el.textContent = JSON.stringify(data, null, 2);
+    }
+
+    function handleFile(key, file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          const { valid, messages } = validators[key](parsed);
+          setStatus(key, valid, messages);
+          setPreview(key, parsed);
+        } catch (err) {
+          setStatus(key, false, ['Invalid JSON']);
+          setPreview(key, { error: err.message });
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    Object.entries(readers).forEach(([key, input]) => {
+      if (!input) return;
+      input.addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        if (file) handleFile(key, file);
+      });
+    });
+  </script>
+</body>
+</html>
