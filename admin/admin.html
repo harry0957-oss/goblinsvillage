@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goblin Page Builder</title>
+    <link rel="icon" href="https://goblinsvillage.com/homeassets/goblinfavicon.png" type="image/png">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .admin-card {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #5c401d;
+            border-radius: 8px;
+            padding: 16px;
+            color: #f5e6d3;
+        }
+
+        .admin-card h3 {
+            margin-top: 0;
+            color: #f0c674;
+        }
+
+        .admin-card label {
+            display: block;
+            font-weight: bold;
+            margin: 12px 0 6px;
+        }
+
+        .admin-card input,
+        .admin-card textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #5c401d;
+            background: #2d2112;
+            color: #f5e6d3;
+        }
+
+        .admin-card textarea { min-height: 220px; }
+
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .preview-frame {
+            background: #1a130c;
+            border: 2px dashed #5c401d;
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 300px;
+        }
+
+        .generated-output {
+            width: 100%;
+            min-height: 260px;
+            background: #0f0a05;
+            color: #f5e6d3;
+            border: 1px solid #5c401d;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre;
+        }
+
+        @media (max-width: 960px) {
+            .admin-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="goblin-ui-wrapper">
+        <div id="site-header"></div>
+
+        <main>
+            <div class="goblin-town-square">
+                <div class="town-col-center" style="width:100%; max-width:1200px;">
+                    <div class="parchment-box">
+                        <h2 class="news-title">Admin Page Builder</h2>
+                        <p>Craft new pages that automatically load the shared header and footer from <code>/partials</code>. Use the editor to write the body content, preview the result, and copy the generated HTML.</p>
+
+                        <div class="admin-grid">
+                            <div class="admin-card">
+                                <h3>Page Details</h3>
+                                <label for="page-title">Page Title</label>
+                                <input id="page-title" type="text" value="New Goblin Page" placeholder="Enter the document &lt;title&gt; text">
+
+                                <label for="body-content">Body Content (HTML)</label>
+                                <textarea id="body-content" placeholder="Write the body section that appears between the header and footer."><div class="parchment-box">
+    <h2 class="news-title">New Page</h2>
+    <p>Describe your new content here. You can use any HTML supported by the site styles.</p>
+</div></textarea>
+
+                                <div class="admin-actions">
+                                    <button class="goblin-btn" id="preview-btn">Update Preview</button>
+                                    <button class="goblin-btn" id="copy-btn">Copy HTML</button>
+                                </div>
+                            </div>
+
+                            <div class="admin-card">
+                                <h3>Live Preview</h3>
+                                <div id="preview" class="preview-frame">Loading header and footer...</div>
+                            </div>
+                        </div>
+
+                        <div class="admin-card" style="margin-top:20px;">
+                            <h3>Generated HTML</h3>
+                            <p>The markup below includes the shared header and footer containers plus the layout loader. Save it as an <code>.html</code> file anywhere in the site tree.</p>
+                            <pre id="generated-output" class="generated-output"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
+    </div>
+
+    <script>
+        const previewEl = document.getElementById('preview');
+        const bodyInput = document.getElementById('body-content');
+        const titleInput = document.getElementById('page-title');
+        const outputEl = document.getElementById('generated-output');
+        let headerHtml = '';
+        let footerHtml = '';
+
+        async function fetchPartial(path) {
+            try {
+                const res = await fetch(path);
+                if (!res.ok) throw new Error('Failed to fetch ' + path);
+                return await res.text();
+            } catch (err) {
+                console.error(err);
+                return '';
+            }
+        }
+
+        function buildPageHtml(title, bodyContent) {
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <link rel="icon" href="https://goblinsvillage.com/homeassets/goblinfavicon.png" type="image/png">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <div class="goblin-ui-wrapper">
+        <div id="site-header"></div>
+        <main>
+${bodyContent}
+        </main>
+        <div id="site-footer"></div>
+    </div>
+    <script src="/assets/js/layout.js"></script>
+</body>
+</html>`;
+        }
+
+        function updatePreview() {
+            const bodyContent = bodyInput.value;
+            const title = titleInput.value || 'Goblin Page';
+            const pageHtml = buildPageHtml(title, bodyContent);
+            outputEl.textContent = pageHtml;
+
+            const previewMarkup = `
+<div class="goblin-ui-wrapper">
+    ${headerHtml || '<div class="missing">Header unavailable</div>'}
+    <main>${bodyContent}</main>
+    ${footerHtml || '<div class="missing">Footer unavailable</div>'}
+</div>`;
+            previewEl.innerHTML = previewMarkup;
+        }
+
+        async function init() {
+            [headerHtml, footerHtml] = await Promise.all([
+                fetchPartial('/partials/header.html'),
+                fetchPartial('/partials/footer.html')
+            ]);
+            updatePreview();
+        }
+
+        document.getElementById('preview-btn').addEventListener('click', updatePreview);
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            const bodyContent = bodyInput.value;
+            const title = titleInput.value || 'Goblin Page';
+            const pageHtml = buildPageHtml(title, bodyContent);
+            navigator.clipboard.writeText(pageHtml);
+            document.getElementById('copy-btn').textContent = 'Copied!';
+            setTimeout(() => {
+                document.getElementById('copy-btn').textContent = 'Copy HTML';
+            }, 1200);
+        });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+    <script src="/assets/js/layout.js"></script>
+</body>
+</html>
