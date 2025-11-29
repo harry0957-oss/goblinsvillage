@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goblins Village Rules Reference</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
     <style>
         /* --- THEME SETTINGS --- */
         :root {
@@ -123,22 +124,30 @@
 </head>
 <body>
 
-<header>
-    <h1>Goblins Village Rules</h1>
-    <input type="text" id="search-bar" placeholder="Search rules (e.g., 'Grapple', 'Trade')...">
-</header>
+    <div class="goblin-ui-wrapper">
+        <div id="site-header"></div>
 
-<div id="grid" class="grid-container">
-    </div>
+        <main>
+            <header>
+                <h1>Goblins Village Rules</h1>
+                <input type="text" id="search-bar" placeholder="Search rules (e.g., 'Grapple', 'Trade')...">
+            </header>
 
-<div id="modal" class="modal-overlay">
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <div class="modal-header" id="m-title">Title</div>
-        <div class="modal-subtitle" id="m-subtitle">Subtitle</div>
-        <div class="modal-body" id="m-body">...</div>
+            <div id="grid" class="grid-container">
+                </div>
+
+            <div id="modal" class="modal-overlay">
+                <div class="modal-content">
+                    <span class="close-btn">&times;</span>
+                    <div class="modal-header" id="m-title">Title</div>
+                    <div class="modal-subtitle" id="m-subtitle">Subtitle</div>
+                    <div class="modal-body" id="m-body">...</div>
+                </div>
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
     </div>
-</div>
 
 <script>
     // --- YOUR DATA GOES HERE ---
@@ -528,5 +537,6 @@
     renderCards();
 
 </script>
+<script src="/assets/js/layout.js"></script>
 </body>
 </html>
