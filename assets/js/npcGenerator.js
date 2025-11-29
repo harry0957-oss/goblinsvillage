@@ -32,6 +32,7 @@
     age: document.getElementById('npc-age'),
     town: document.getElementById('npc-town'),
     profession: document.getElementById('npc-profession'),
+    aesthetic: document.getElementById('npc-aesthetic'),
     physical: document.getElementById('npc-physical'),
     backstory: document.getElementById('npc-backstory'),
     motivations: document.getElementById('motivations-list'),
@@ -59,6 +60,8 @@
     return response.json();
   }
 
+  // Data is sourced from /data; add new races, professions, towns, or traits there to extend the generator without
+  // modifying the logic here.
   async function loadData() {
     const files = ['config.json', 'names.json', 'professions.json', 'towns.json', 'traits.json', 'ages.json'];
     const [config, names, professions, towns, traits, ages] = await Promise.all(files.map(fetchJson));
@@ -98,6 +101,11 @@
 
   function randomFrom(array) {
     return array[Math.floor(Math.random() * array.length)];
+  }
+
+  function findLabel(items = [], id) {
+    const found = items.find((item) => item.id === id);
+    return found ? found.label : id;
   }
 
   function pickName(raceId, genderId) {
@@ -158,7 +166,11 @@
     const name = pickName(config.raceId, config.genderId);
     const profession = pickProfession(config.raceId, config.professionId);
     const town = pickTown(config.townId);
+    const aestheticLabel = findLabel(store.config.aesthetics, config.aestheticId);
+    const raceLabel = findLabel(store.config.races, config.raceId);
+    const genderLabel = findLabel(store.config.genders, config.genderId);
 
+    // Tags are used to bias trait selection; extend data in /data to expand these combinations.
     const tags = [config.raceId, config.genderId, profession.id, town.id, config.aestheticId].filter(Boolean);
 
     const physical = pickTrait('physical', tags);
@@ -183,11 +195,12 @@
 
     return {
       name,
-      race: config.raceId,
-      gender: config.genderId,
+      race: raceLabel,
+      gender: genderLabel,
       age: config.age,
       townLabel: town.label,
       professionLabel: profession.label,
+      aesthetic: aestheticLabel,
       physical,
       backstory,
       motivations,
@@ -197,19 +210,26 @@
     };
   }
 
-  function renderNpc(npc) {
-    outputEls.name.textContent = npc.name;
-    outputEls.race.textContent = npc.race;
-    outputEls.gender.textContent = npc.gender;
-    outputEls.age.textContent = npc.age;
-    outputEls.town.textContent = npc.townLabel;
-    outputEls.profession.textContent = npc.professionLabel;
+  function setOutput(el, text) {
+    if (!el) return;
+    el.textContent = text;
+    el.classList.remove('placeholder-text');
+  }
 
-    outputEls.physical.textContent = npc.physical || 'No physical description found.';
-    outputEls.backstory.textContent = npc.backstory || 'No backstory found.';
-    outputEls.voice.textContent = npc.voice || 'No vocal guidance available.';
-    outputEls.visual.textContent = npc.visual || 'No visual prompt available yet.';
-    outputEls.hook.textContent = npc.hook || 'No hook found.';
+  function renderNpc(npc) {
+    setOutput(outputEls.name, npc.name);
+    setOutput(outputEls.race, npc.race);
+    setOutput(outputEls.gender, npc.gender);
+    setOutput(outputEls.age, npc.age);
+    setOutput(outputEls.town, npc.townLabel);
+    setOutput(outputEls.profession, npc.professionLabel);
+    setOutput(outputEls.aesthetic, npc.aesthetic);
+
+    setOutput(outputEls.physical, npc.physical || 'No physical description found.');
+    setOutput(outputEls.backstory, npc.backstory || 'No backstory found.');
+    setOutput(outputEls.voice, npc.voice || 'No vocal guidance available.');
+    setOutput(outputEls.visual, npc.visual || 'No visual prompt available yet.');
+    setOutput(outputEls.hook, npc.hook || 'No hook found.');
 
     outputEls.motivations.innerHTML = '';
     if (npc.motivations && npc.motivations.length) {
@@ -223,10 +243,11 @@
       li.textContent = 'No motivations available.';
       outputEls.motivations.appendChild(li);
     }
+    outputEls.motivations.classList.remove('placeholder-text');
   }
 
   function buildSummary(npc) {
-    return `${npc.name} (${npc.race}, ${npc.gender}, ${npc.age}, ${npc.professionLabel} from ${npc.townLabel})\n` +
+    return `${npc.name} (${npc.race}, ${npc.gender}, ${npc.age}, ${npc.professionLabel} from ${npc.townLabel}, aesthetic: ${npc.aesthetic})\n` +
       `Physical: ${npc.physical || 'N/A'}\n` +
       `Backstory: ${npc.backstory || 'N/A'}\n` +
       `Motivations:\n- ${(npc.motivations || []).join('\n- ') || 'N/A'}\n` +
@@ -295,11 +316,14 @@
   async function init() {
     markActiveNav();
     selectors.age.value = selectors.age.value || '30';
+    if (selectors.generateBtn) selectors.generateBtn.disabled = true;
+    if (selectors.copyBtn) selectors.copyBtn.disabled = true;
 
     try {
       await loadData();
       populateDropdowns();
-      handleGenerate();
+      if (selectors.generateBtn) selectors.generateBtn.disabled = false;
+      if (selectors.copyBtn) selectors.copyBtn.disabled = false;
     } catch (err) {
       console.error('Failed to initialize NPC generator', err);
       if (selectors.generateBtn) selectors.generateBtn.disabled = true;

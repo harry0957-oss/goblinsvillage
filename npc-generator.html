@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Goblin's Village – NPC Generator</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/generators.css">
+</head>
+<body>
+    <div class="goblin-ui-wrapper">
+        <div id="site-header"></div>
+
+        <main>
+            <div class="goblin-town-square">
+                <div class="town-col-center" style="width:100%; max-width:1300px;">
+                    <div class="parchment-box">
+                        <p class="breadcrumb"><a href="/goblinsvillage/generators.html">Generators</a> &gt; NPC Generator</p>
+                        <section class="page-hero">
+                            <h1 class="news-title">NPC Generator</h1>
+                            <p>Create ready-to-play characters with names, personalities, hooks, voice tips, and visual prompts.</p>
+                        </section>
+
+                        <div class="gv-container generator-layout">
+                            <div class="generator-panel">
+                                <h3>Inputs</h3>
+                                <form class="generator-form" id="npc-form" autocomplete="off">
+                                    <div class="form-grid">
+                                        <label for="race-select">Race</label>
+                                        <select class="goblin-input" id="race-select"></select>
+
+                                        <label for="gender-select">Gender</label>
+                                        <select class="goblin-input" id="gender-select"></select>
+
+                                        <label for="age-input">Age</label>
+                                        <input class="goblin-input" id="age-input" type="number" value="30" min="1" max="999" />
+
+                                        <label for="town-select">Town / Locale</label>
+                                        <select class="goblin-input" id="town-select"></select>
+
+                                        <label for="profession-select">Profession</label>
+                                        <select class="goblin-input" id="profession-select"></select>
+
+                                        <label for="aesthetic-select">Aesthetic</label>
+                                        <select class="goblin-input" id="aesthetic-select"></select>
+                                    </div>
+
+                                    <div class="generator-actions">
+                                        <button type="button" class="goblin-btn" id="generate-btn">Generate NPC</button>
+                                        <button type="button" class="ghost-btn" id="copy-btn">Copy Summary</button>
+                                        <span id="copy-status" class="copy-status"></span>
+                                    </div>
+                                    <p class="generator-note">Choose any fields to guide the results or leave them as-is to let the goblins improvise.</p>
+                                </form>
+                            </div>
+
+                            <div class="generator-output">
+                                <div class="npc-card">
+                                    <h4>Identity</h4>
+                                    <p style="font-size:1.2rem; margin: 0 0 10px; color:#f7d979; font-family:'Cinzel', serif;" id="npc-name">Awaiting a fresh face from the village...</p>
+                                    <div class="identity-grid">
+                                        <div><strong>Race</strong><span id="npc-race" class="placeholder-text">Choose a lineage or let fate decide.</span></div>
+                                        <div><strong>Gender</strong><span id="npc-gender" class="placeholder-text">We'll match a fitting name and pronouns.</span></div>
+                                        <div><strong>Age</strong><span id="npc-age" class="placeholder-text">An age to flavor their experience.</span></div>
+                                        <div><strong>Town</strong><span id="npc-town" class="placeholder-text">Where do they hail from?</span></div>
+                                        <div><strong>Profession</strong><span id="npc-profession" class="placeholder-text">What keeps them busy?</span></div>
+                                        <div><strong>Aesthetic</strong><span id="npc-aesthetic" class="placeholder-text">What vibe guides their story?</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="npc-card">
+                                    <h4>Physical Description</h4>
+                                    <p id="npc-physical" class="placeholder-text">A vivid description will appear after generation.</p>
+                                </div>
+
+                                <div class="npc-card">
+                                    <h4>Backstory</h4>
+                                    <p id="npc-backstory" class="placeholder-text">A short backstory will anchor them to the world.</p>
+                                </div>
+
+                                <div class="npc-card">
+                                    <h4>Motivations &amp; Goals</h4>
+                                    <ul class="npc-motivation-list" id="motivations-list">
+                                        <li class="placeholder-text">Generate to reveal their ambitions.</li>
+                                    </ul>
+                                </div>
+
+                                <div class="npc-card">
+                                    <h4>Hook</h4>
+                                    <span class="npc-pill" id="npc-hook">An adventure hook will be forged here.</span>
+                                </div>
+
+                                <div class="npc-card">
+                                    <h4>How to Voice</h4>
+                                    <p id="npc-voice" class="placeholder-text">Voice and attitude cues will show up after generation.</p>
+                                </div>
+
+                                <div class="npc-card">
+                                    <h4>Visuals</h4>
+                                    <p id="npc-visual" class="placeholder-text">A painterly prompt will land here.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
+    </div>
+
+    <script src="assets/js/layout.js"></script>
+    <script src="assets/js/npcGenerator.js"></script>
+</body>
+</html>
