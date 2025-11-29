@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Cursed Loot Generator</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Courier New', Courier, monospace; color: #d4d4d4; }
+        #ui-container {
+            position: absolute; top: 10%; width: 100%; text-align: center; pointer-events: none;
+            z-index: 10;
+        }
+        h1 { font-size: 2.5rem; color: #a35dd9; text-shadow: 0 0 10px #a35dd9; margin-bottom: 5px; }
+        p { font-size: 1rem; color: #888; }
+        
+        #card {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 300px; padding: 20px; background: rgba(20, 20, 20, 0.9); border: 2px solid #a35dd9;
+            box-shadow: 0 0 20px rgba(163, 93, 217, 0.4); text-align: left; pointer-events: auto;
+        }
+        #card h2 { color: #fff; margin-top: 0; border-bottom: 1px solid #555; padding-bottom: 10px; }
+        .stat { margin: 10px 0; font-size: 0.9rem; }
+        .label { color: #a35dd9; font-weight: bold; }
+        .curse-text { color: #ff4444; font-style: italic; margin-top: 15px; border-top: 1px dotted #555; padding-top: 10px;}
+        #close-btn {
+            background: #a35dd9; border: none; color: white; padding: 5px 15px; cursor: pointer; float: right; font-weight: bold;
+        }
+        #instructions { position: absolute; bottom: 20px; width: 100%; text-align: center; color: #666; pointer-events: none;}
+    </style>
+</head>
+<body>
+    <a href="/" style="position: absolute; top: 20px; left: 20px; color: #888; text-decoration: none; font-family: 'Courier New', monospace; font-weight: bold; z-index: 100; border: 1px solid #444; padding: 10px; background: rgba(0,0,0,0.8);">← RETURN TO VILLAGE</a>
+
+    <div id="ui-container">
+        <h1>THE NECROTIC VAULT</h1>
+        <p>Goblin's Village // Cursed Item Database</p>
+    </div>
+
+    <div id="card">
+        <button id="close-btn" onclick="closeCard()">X</button>
+        <h2 id="item-name">Item Name</h2>
+        <div class="stat"><span class="label">Type:</span> <span id="item-type">Weapon</span></div>
+        <div class="stat"><span class="label">Value:</span> <span id="item-value">100gp</span></div>
+        <div class="stat"><span class="label">Description:</span> <span id="item-desc">...</span></div>
+        <div class="curse-text"><span class="label">CURSE:</span> <span id="item-curse">...</span></div>
+    </div>
+
+    <div id="instructions">CLICK THE ORB TO SUMMON LOOT</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // --- DATA: THE CURSED LIST ---
+        const lootData = [
+            { name: "The Miller's Lucky Coin", type: "Trinket", value: "5gp", desc: "A gold coin that feels greasy. Always lands heads up.", curse: "Owner cannot taste sweetness; everything tastes like ash." },
+            { name: "Dagger of the White Worm", type: "Weapon", value: "150gp", desc: "Bone dagger carved from a femur. The blade weeps milk.", curse: "On hit, wielder takes 1d4 necrotic dmg as handle bites hand." },
+            { name: "Vial of 'Holy' Water", type: "Consumable", value: "25gp", desc: "Wriggling shapes visible inside if held to light.", curse: "Acts as Poison of Sickness (DC 13 Con save)." },
+            { name: "Grain Sack Mask", type: "Armor", value: "10gp", desc: "Burlap sack with eye holes, stained with dried blood.", curse: "Disadvantage on Sight Perception, Advantage on Intimidation." },
+            { name: "Ring of the Rotting Finger", type: "Jewelry", value: "75gp", desc: "Silver band that is slightly too tight.", curse: "Finger turns black. Remove only via Remove Curse or amputation." },
+            { name: "Pristine Apple", type: "Consumable", value: "1sp", desc: "A perfect red apple in a crate of rot.", curse: "Never rots. If eaten, vomit slugs for 1 hour." },
+            { name: "Lantern of False Hope", type: "Gear", value: "40gp", desc: "Brass lantern burning with cold blue flame.", curse: "Light reveals shadows of people who aren't there." },
+            { name: "Boots of the Grave", type: "Armor", value: "50gp", desc: "Leather boots caked in un-washable graveyard mud.", curse: "Leaves muddy/smelly footprints. Disadv on Stealth." },
+            { name: "Necklace of Teeth", type: "Jewelry", value: "20gp", desc: "String of molars. Some look human.", curse: "Teeth chatter when undead are within 30ft." },
+            { name: "Mirror of Vanity", type: "Furniture", value: "60gp", desc: "Hand mirror with a cracked handle.", curse: "Reflection shows the viewer as a rotting corpse." }
+        ];
+
+        // --- THREE.JS SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050505, 0.05);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xa35dd9, 2, 50); // Purple glow
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
+
+        // The Object (The "Orb")
+        const geometry = new THREE.IcosahedronGeometry(1.5, 0); // D20 shape
+        const material = new THREE.MeshStandardMaterial({ 
+            color: 0x330033, 
+            emissive: 0x220022,
+            wireframe: true 
+        });
+        const innerGeo = new THREE.IcosahedronGeometry(1.4, 0);
+        const innerMat = new THREE.MeshBasicMaterial({ color: 0x110011 });
+        
+        const orb = new THREE.Mesh(geometry, material);
+        const core = new THREE.Mesh(innerGeo, innerMat);
+        orb.add(core);
+        scene.add(orb);
+
+        camera.position.z = 5;
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            orb.rotation.x += 0.005;
+            orb.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- INTERACTION ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function onMouseClick(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects([orb, core]);
+
+            if (intersects.length > 0) {
+                generateLoot();
+                // Visual feedback (Flash)
+                orb.material.emissive.setHex(0xffffff);
+                setTimeout(() => { orb.material.emissive.setHex(0x220022); }, 100);
+            }
+        }
+
+        window.addEventListener('click', onMouseClick, false);
+
+        // --- LOGIC ---
+        function generateLoot() {
+            const item = lootData[Math.floor(Math.random() * lootData.length)];
+            document.getElementById('item-name').innerText = item.name;
+            document.getElementById('item-type').innerText = item.type;
+            document.getElementById('item-value').innerText = item.value;
+            document.getElementById('item-desc').innerText = item.desc;
+            document.getElementById('item-curse').innerText = item.curse;
+            
+            document.getElementById('card').style.display = 'block';
+        }
+
+        function closeCard() {
+            document.getElementById('card').style.display = 'none';
+        }
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

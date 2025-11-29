@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goblins Village Rules Reference</title>
+    <style>
+        /* --- THEME SETTINGS --- */
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --accent-color: #50fa7b; /* Goblin Green */
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- HEADER & SEARCH --- */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+
+        #search-bar {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: var(--border-radius);
+            border: 1px solid #333;
+            background-color: var(--card-bg);
+            color: white;
+            outline: none;
+        }
+        #search-bar:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* --- CARD GRID --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-color);
+        }
+
+        /* Colored top strip for categories */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background-color: var(--cat-color, #555);
+        }
+
+        .card h3 { margin: 0 0 5px 0; font-size: 1.1em; }
+        .card .subtitle { color: var(--text-muted); font-size: 0.9em; margin-bottom: 10px; }
+        .card .icon { float: right; opacity: 0.2; font-size: 1.5em; }
+
+        /* --- MODAL (POPUP) --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--accent-color);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .modal-header { font-size: 1.5em; color: var(--accent-color); margin-bottom: 5px; }
+        .modal-subtitle { color: var(--text-muted); margin-bottom: 15px; font-style: italic; border-bottom: 1px solid #333; padding-bottom: 10px;}
+        .modal-body { line-height: 1.6; }
+        .close-btn {
+            position: absolute; top: 10px; right: 15px;
+            font-size: 24px; cursor: pointer; color: #666;
+        }
+        .close-btn:hover { color: white; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Goblins Village Rules</h1>
+    <input type="text" id="search-bar" placeholder="Search rules (e.g., 'Grapple', 'Trade')...">
+</header>
+
+<div id="grid" class="grid-container">
+    </div>
+
+<div id="modal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <div class="modal-header" id="m-title">Title</div>
+        <div class="modal-subtitle" id="m-subtitle">Subtitle</div>
+        <div class="modal-body" id="m-body">...</div>
+    </div>
+</div>
+
+<script>
+    // --- YOUR DATA GOES HERE ---
+    // You can copy standard 5e rules here, or add your custom village rules.
+    const rulesData = [
+        // --- MOVEMENT ---
+                {
+            title: "Move",
+            category: "Movement",
+            subtitle: "Cost: 5ft per 5ft",
+            color: "#bd93f9", // Purple
+            description: "You can move at any time during your turn (before, after, or during actions).<br><br><b>Breaking Up Your Move:</b> You can break up your movement on your turn, using some of your speed before and after your action. For example, if you have a speed of 30 feet, you can move 10 feet, take your action, and then move 20 feet."
+        },
+        {
+            title: "Climb",
+            category: "Movement",
+            subtitle: "Cost: 10ft per 5ft",
+            color: "#bd93f9",
+            description: "Each foot of movement costs 1 extra foot (2 extra feet in difficult terrain) when climbing, swimming, or crawling. You ignore this extra cost if you have a climbing speed and use it to climb."
+        },
+        {
+            title: "Swim",
+            category: "Movement",
+            subtitle: "Cost: 10ft per 5ft",
+            color: "#bd93f9",
+            description: "Each foot of movement costs 1 extra foot (2 extra feet in difficult terrain) when climbing, swimming, or crawling. You ignore this extra cost if you have a swimming speed and use it to swim."
+        },
+        {
+            title: "Drop Prone",
+            category: "Movement",
+            subtitle: "Cost: 0ft",
+            color: "#bd93f9",
+            description: "You can drop prone without using any of your speed. To stand up, you must spend half your speed."
+        },
+        {
+            title: "Crawl",
+            category: "Movement",
+            subtitle: "Cost: 10ft per 5ft",
+            color: "#bd93f9",
+            description: "While prone, you can crawl. Each foot of movement costs 1 extra foot (2 extra feet in difficult terrain)."
+        },
+        {
+            title: "Stand Up",
+            category: "Movement",
+            subtitle: "Cost: half speed",
+            color: "#bd93f9",
+            description: "Standing up takes more effort; doing so costs an amount of movement equal to half your speed. For example, if your speed is 30 feet, you must spend 15 feet of movement to stand up. You can't stand up if you don't have enough movement left or if your speed is 0."
+        },
+        {
+            title: "High Jump",
+            category: "Movement",
+            subtitle: "Cost: 5ft per 5ft",
+            color: "#bd93f9",
+            description: "<b>Running:</b> You leap into the air a number of feet equal to <b>3 + your Strength modifier</b> if you move at least 10 feet on foot immediately before the jump.<br><br><b>Standing:</b> You can jump only half that distance.<br><br>You can extend your arms half your height above yourself during the jump. Thus, you can reach above you a distance equal to the height of the jump plus 1.5 times your height."
+        },
+        {
+            title: "Long Jump",
+            category: "Movement",
+            subtitle: "Cost: 5ft per 5ft",
+            color: "#bd93f9",
+            description: "<b>Running:</b> You cover a number of feet up to your <b>Strength score</b> if you move at least 10 feet on foot immediately before the jump.<br><br><b>Standing:</b> You can jump only half that distance.<br><br>Either way, each foot you clear on the jump costs a foot of movement."
+        },
+        {
+            title: "Difficult Terrain",
+            category: "Movement",
+            subtitle: "Modifier: +5ft per 5ft",
+            color: "#bd93f9",
+            description: "You move at half speed in difficult terrain—moving 1 foot in difficult terrain costs 2 feet of speed—so you can cover only half the normal distance in a minute, an hour, or a day."
+        },
+        {
+            title: "Grapple Move",
+            category: "Movement",
+            subtitle: "Modifier: speed halved",
+            color: "#bd93f9",
+            description: "When you move a grappled creature, you can drag or carry the creature with you, but your speed is halved, unless the creature is two or more sizes smaller than you."
+        },
+
+        // --- ACTIONS ---
+        {
+            title: "Attack",
+            category: "Action",
+            subtitle: "Melee or Ranged",
+            color: "#ff5555", // Red
+            description: "With this action, you make one melee or ranged attack. See the 'Making an Attack' section for more details. Certain features, such as the Extra Attack feature of the fighter, allow you to make more than one attack with this action."
+        },
+        {
+            title: "Grapple",
+            category: "Action",
+            subtitle: "Special melee attack",
+            color: "#ff5555",
+            description: "The target of your grapple must be no more than one size larger than you and must be within your reach. Using at least one free hand, you try to seize the target by making a grapple check instead of an attack roll: a Strength (Athletics) check contested by the target's Strength (Athletics) or Dexterity (Acrobatics) check (the target chooses the ability to use). <br><br><b>Success:</b> The target is subjected to the <b>grappled</b> condition."
+        },
+        {
+            title: "Shove",
+            category: "Action",
+            subtitle: "Special melee attack",
+            color: "#ff5555",
+            description: "Using the Attack action, you can make a special melee attack to shove a creature, either to knock it prone or push it away from you. The target must be no more than one size larger than you and must be within your reach. Make a Strength (Athletics) check contested by the target's Strength (Athletics) or Dexterity (Acrobatics) check. <br><br><b>Success:</b> You either knock the target prone or push it 5 feet away from you."
+        },
+        {
+            title: "Cast a Spell",
+            category: "Action",
+            subtitle: "Cast time: 1 action",
+            color: "#ff5555",
+            description: "Cast a spell with a casting time of 1 action. You must adhere to the spell's components (Verbal, Somatic, Material) and rules."
+        },
+        {
+            title: "Dash",
+            category: "Action",
+            subtitle: "Double movement",
+            color: "#ff5555",
+            description: "When you take the Dash action, you gain extra movement for the current turn. The increase equals your speed, after applying any modifiers. With a speed of 30 feet, for example, you can move up to 60 feet on your turn if you dash."
+        },
+        {
+            title: "Disengage",
+            category: "Action",
+            subtitle: "Prevent opportunity attacks",
+            color: "#ff5555",
+            description: "If you take the Disengage action, your movement doesn't provoke opportunity attacks for the rest of the turn."
+        },
+        {
+            title: "Dodge",
+            category: "Action",
+            subtitle: "Increase defenses",
+            color: "#ff5555",
+            description: "Until the start of your next turn, any attack roll made against you has disadvantage if you can see the attacker, and you make Dexterity saving throws with advantage. You lose this benefit if you are incapacitated or if your speed drops to 0."
+        },
+        {
+            title: "Escape",
+            category: "Action",
+            subtitle: "Escape a grapple",
+            color: "#ff5555",
+            description: "To escape a grapple, you must succeed on a Strength (Athletics) or Dexterity (Acrobatics) check contested by the grappler's Strength (Athletics) check."
+        },
+        {
+            title: "Help",
+            category: "Action",
+            subtitle: "Grant an ally advantage",
+            color: "#ff5555",
+            description: "You can lend your aid to another creature in the completion of a task. When you take the Help action, the creature you aid gains advantage on the next ability check it makes to perform the task you are helping with.<br><br>Alternatively, you can aid a friendly creature in attacking a creature within 5 feet of you. If your ally attacks the target before your next turn, the first attack roll is made with advantage."
+        },
+        {
+            title: "Use Object",
+            category: "Action",
+            subtitle: "Interact / Use ability",
+            color: "#ff5555",
+            description: "You normally interact with an object while doing something else, such as when you draw a sword as part of an attack. When an object requires your action for its use, you take the Use an Object action. This action is also useful when you want to interact with more than one object on your turn."
+        },
+        {
+            title: "Hide",
+            category: "Action",
+            subtitle: "Stealth check",
+            color: "#ff5555",
+            description: "When you take the Hide action, you make a Dexterity (Stealth) check in an attempt to hide, following the rules for hiding. If you succeed, you gain certain benefits, as described in the 'Unseen Attackers and Targets' section."
+        },
+        {
+            title: "Search",
+            category: "Action",
+            subtitle: "Perception / Investigation",
+            color: "#ff5555",
+            description: "When you take the Search action, you devote your attention to finding something. Depending on the nature of your search, the DM might have you make a Wisdom (Perception) check or an Intelligence (Investigation) check."
+        },
+        {
+            title: "Ready",
+            category: "Action",
+            subtitle: "Choose trigger & action",
+            color: "#ff5555",
+            description: "First, you decide what perceivable circumstance will trigger your reaction. Second, you choose the action you will take in response to that trigger, or you choose to move up to your speed in response to it.<br><br>When the trigger occurs, you can either take your reaction right after the trigger finishes or ignore the trigger."
+        },
+
+        // --- BONUS ACTIONS ---
+        {
+            title: "Offhand Attack",
+            category: "Bonus Action",
+            subtitle: "Two-weapon fighting",
+            color: "#ffb86c", // Orange
+            description: "When you take the Attack action and attack with a light melee weapon that you're holding in one hand, you can use a bonus action to attack with a different light melee weapon that you're holding in the other hand. You don't add your ability modifier to the damage of the bonus attack, unless that modifier is negative."
+        },
+        {
+            title: "Cast a Spell",
+            category: "Bonus Action",
+            subtitle: "Cast time: 1 bonus action",
+            color: "#ffb86c",
+            description: "A spell cast with a bonus action is especially swift. You must use a bonus action on your turn to cast the spell, provided that you haven't already taken a bonus action this turn. You can't cast another spell during the same turn, except for a cantrip with a casting time of 1 action."
+        },
+
+        // --- REACTIONS ---
+        {
+            title: "Opportunity Attack",
+            category: "Reaction",
+            subtitle: "Enemy leaves reach",
+            color: "#f1fa8c", // Yellow
+            description: "You can make an opportunity attack when a hostile creature that you can see moves out of your reach. To make the opportunity attack, you use your reaction to make one melee attack against the provoking creature. The attack occurs right before the creature leaves your reach."
+        },
+        {
+            title: "Readied Action",
+            category: "Reaction",
+            subtitle: "Triggered action",
+            color: "#f1fa8c",
+            description: "When the trigger you defined with your Ready action occurs, you can use your reaction to release your readied action."
+        },
+        {
+            title: "Cast a Spell",
+            category: "Reaction",
+            subtitle: "Cast time: 1 reaction",
+            color: "#f1fa8c",
+            description: "Some spells can be cast as reactions. These spells take a fraction of a second to bring about and are cast in response to some event. If a spell can be cast as a reaction, the spell description tells you exactly when you can do so."
+        },
+
+        // --- CONDITIONS ---
+        {
+            title: "Blinded",
+            category: "Condition",
+            subtitle: "Can't see",
+            color: "#6272a4", // Grey/Blue
+            description: "<ul><li>A blinded creature can't see and automatically fails any ability check that requires sight.</li><li>Attack rolls against the creature have advantage, and the creature's attack rolls have disadvantage.</li></ul>"
+        },
+        {
+            title: "Charmed",
+            category: "Condition",
+            subtitle: "You are charmed",
+            color: "#6272a4",
+            description: "<ul><li>A charmed creature can't attack the charmer or target the charmer with harmful abilities or magical effects.</li><li>The charmer has advantage on any ability check to interact socially with the creature.</li></ul>"
+        },
+        {
+            title: "Deafened",
+            category: "Condition",
+            subtitle: "Can't hear",
+            color: "#6272a4",
+            description: "<ul><li>A deafened creature can't hear and automatically fails any ability check that requires hearing.</li></ul>"
+        },
+        {
+            title: "Frightened",
+            category: "Condition",
+            subtitle: "You are frightened",
+            color: "#6272a4",
+            description: "<ul><li>A frightened creature has disadvantage on ability checks and attack rolls while the source of its fear is within line of sight.</li><li>The creature can't willingly move closer to the source of its fear.</li></ul>"
+        },
+        {
+            title: "Grappled",
+            category: "Condition",
+            subtitle: "Movement 0",
+            color: "#6272a4",
+            description: "<ul><li>A grappled creature's speed becomes 0, and it can't benefit from any bonus to its speed.</li><li>The condition ends if the grappler is incapacitated.</li><li>The condition also ends if an effect removes the grappled creature from the reach of the grappler or grappling effect.</li></ul>"
+        },
+        {
+            title: "Incapacitated",
+            category: "Condition",
+            subtitle: "No actions/reactions",
+            color: "#6272a4",
+            description: "<ul><li>An incapacitated creature can't take actions or reactions.</li></ul>"
+        },
+        {
+            title: "Invisible",
+            category: "Condition",
+            subtitle: "Can't be seen",
+            color: "#6272a4",
+            description: "<ul><li>An invisible creature is impossible to see without the aid of magic or a special sense. For the purpose of hiding, the creature is heavily obscured. The creature's location can be detected by any noise it makes or any tracks it leaves.</li><li>Attack rolls against the creature have disadvantage, and the creature's attack rolls have advantage.</li></ul>"
+        },
+        {
+            title: "Paralyzed",
+            category: "Condition",
+            subtitle: "Incapacitated",
+            color: "#6272a4",
+            description: "<ul><li>A paralyzed creature is incapacitated (see the condition) and can't move or speak.</li><li>The creature automatically fails Strength and Dexterity saving throws.</li><li>Attack rolls against the creature have advantage.</li><li>Any attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature.</li></ul>"
+        },
+        {
+            title: "Petrified",
+            category: "Condition",
+            subtitle: "Turned to stone",
+            color: "#6272a4",
+            description: "<ul><li>A petrified creature is transformed, along with any nonmagical object it is wearing or carrying, into a solid inanimate substance (usually stone). Its weight increases by a factor of ten, and it ceases aging.</li><li>The creature is incapacitated, can't move or speak, and is unaware of its surroundings.</li><li>Attack rolls against the creature have advantage.</li><li>The creature automatically fails Strength and Dexterity saving throws.</li><li>The creature has resistance to all damage.</li><li>The creature is immune to poison and disease, although a poison or disease already in its system is suspended, not neutralized.</li></ul>"
+        },
+        {
+            title: "Poisoned",
+            category: "Condition",
+            subtitle: "Disadvantage",
+            color: "#6272a4",
+            description: "<ul><li>A poisoned creature has disadvantage on attack rolls and ability checks.</li></ul>"
+        },
+        {
+            title: "Prone",
+            category: "Condition",
+            subtitle: "Lying down",
+            color: "#6272a4",
+            description: "<ul><li>A prone creature's only movement option is to crawl, unless it stands up and thereby ends the condition.</li><li>The creature has disadvantage on attack rolls.</li><li>An attack roll against the creature has advantage if the attacker is within 5 feet of the creature. Otherwise, the attack roll has disadvantage.</li></ul>"
+        },
+        {
+            title: "Restrained",
+            category: "Condition",
+            subtitle: "Speed 0",
+            color: "#6272a4",
+            description: "<ul><li>A restrained creature's speed becomes 0, and it can't benefit from any bonus to its speed.</li><li>Attack rolls against the creature have advantage, and the creature's attack rolls have disadvantage.</li><li>The creature has disadvantage on Dexterity saving throws.</li></ul>"
+        },
+        {
+            title: "Stunned",
+            category: "Condition",
+            subtitle: "Incapacitated",
+            color: "#6272a4",
+            description: "<ul><li>A stunned creature is incapacitated, can't move, and can speak only falteringly.</li><li>The creature automatically fails Strength and Dexterity saving throws.</li><li>Attack rolls against the creature have advantage.</li></ul>"
+        },
+        {
+            title: "Unconscious",
+            category: "Condition",
+            subtitle: "Incapacitated & Unaware",
+            color: "#6272a4",
+            description: "<ul><li>An unconscious creature is incapacitated, can't move or speak, and is unaware of its surroundings.</li><li>The creature drops whatever it's holding and falls prone.</li><li>The creature automatically fails Strength and Dexterity saving throws.</li><li>Attack rolls against the creature have advantage.</li><li>Any attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature.</li></ul>"
+        },
+        {
+            title: "Exhaustion",
+            category: "Condition",
+            subtitle: "Levels 1-6",
+            color: "#6272a4",
+            description: "1. Disadvantage on ability checks<br>2. Speed halved<br>3. Disadvantage on attack rolls and saving throws<br>4. Hit point maximum halved<br>5. Speed reduced to 0<br>6. Death"
+        },
+
+        // --- ENVIRONMENT ---
+        {
+            title: "Lightly Obscured",
+            category: "Environment",
+            subtitle: "Disadv. Perception",
+            color: "#8be9fd", // Cyan
+            description: "In a lightly obscured area, such as dim light, patchy fog, or moderate foliage, creatures have disadvantage on Wisdom (Perception) checks that rely on sight."
+        },
+        {
+            title: "Heavily Obscured",
+            category: "Environment",
+            subtitle: "Blindness",
+            color: "#8be9fd",
+            description: "A heavily obscured area—such as darkness, opaque fog, or dense foliage—blocks vision entirely. A creature effectively suffers from the blinded condition when trying to see something in that area."
+        },
+        {
+            title: "Cover",
+            category: "Environment",
+            subtitle: "Half / 3/4 / Full",
+            color: "#8be9fd",
+            description: "<b>Half Cover:</b> +2 bonus to AC and Dexterity saving throws. (Low wall, furniture)<br><br><b>Three-Quarters Cover:</b> +5 bonus to AC and Dexterity saving throws. (Portcullis, arrow slit)<br><br><b>Total Cover:</b> Can't be targeted directly by an attack or a spell."
+        }
+    ];
+
+    // --- ENGINE CODE (DO NOT EDIT UNLESS YOU WANT TO CHANGE BEHAVIOR) ---
+    const grid = document.getElementById('grid');
+    const modal = document.getElementById('modal');
+    const searchBar = document.getElementById('search-bar');
+    const closeBtn = document.querySelector('.close-btn');
+
+    // Function to render cards
+    function renderCards(filterText = '') {
+        grid.innerHTML = ''; // Clear grid
+        rulesData.forEach(rule => {
+            // Search logic
+            const searchText = (rule.title + rule.subtitle).toLowerCase();
+            if (!searchText.includes(filterText.toLowerCase())) return;
+
+            // Create Card
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.setProperty('--cat-color', rule.color || '#555');
+            card.innerHTML = `
+                <h3>${rule.title}</h3>
+                <div class="subtitle">${rule.subtitle}</div>
+            `;
+            
+            // Click event
+            card.addEventListener('click', () => openModal(rule));
+            grid.appendChild(card);
+        });
+    }
+
+    // Modal Logic
+    function openModal(rule) {
+        document.getElementById('m-title').innerText = rule.title;
+        document.getElementById('m-title').style.color = rule.color || '#fff';
+        document.getElementById('m-subtitle').innerText = rule.category + " — " + rule.subtitle;
+        document.getElementById('m-body').innerHTML = rule.description; // allow HTML in description
+        modal.style.display = 'flex';
+    }
+
+    // Close Modal
+    closeBtn.onclick = () => modal.style.display = 'none';
+    window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; }
+
+    // Search Listener
+    searchBar.addEventListener('input', (e) => renderCards(e.target.value));
+
+    // Initial Render
+    renderCards();
+
+</script>
+</body>
+</html>

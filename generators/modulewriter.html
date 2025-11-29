@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dungeon Drafter - Portable Edition</title>
+    
+    <!-- 1. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 2. React & ReactDOM (Production UMD) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- 3. Babel (for JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Custom Font Imports */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:ital,wght@0,400;0,700;1,400&family=IM+Fell+English:ital@0;1&display=swap');
+
+        /* Print Specific Styles */
+        @media print {
+            @page { 
+                size: A4; 
+                margin: 0;
+            }
+            body { 
+                background: white; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+            }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .canvas-area {
+                transform: none !important;
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        /* Rich Text Editor Styles */
+        .rich-editor b { font-weight: bold; }
+        .rich-editor i { font-style: italic; }
+        .rich-editor u { text-decoration: underline; }
+        .rich-editor font { vertical-align: inherit; } /* Fix for font tags if execCommand uses them */
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect, useCallback } = React;
+
+        // --- Inline Icons ---
+        const Icons = {
+            LayoutTemplate: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
+            Printer: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>,
+            Type: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>,
+            Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>,
+            Move: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="22"/></svg>,
+            Trash2: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
+            Layers: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>,
+            ChevronsUp: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 11-5-5-5 5"/><path d="m17 18-5-5-5 5"/></svg>,
+            ChevronsDown: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7 6 5 5 5-5"/><path d="m7 13 5 5 5-5"/></svg>,
+            ArrowUp: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>,
+            ArrowDown: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>,
+            Copy: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>,
+            Bold: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 12a4 4 0 0 0 0-8H6v8"/><path d="M15 20a4 4 0 0 0 0-8H6v8Z"/></svg>,
+            Italic: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>,
+            Underline: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="4" x2="20" y1="20" y2="20"/></svg>,
+            Table: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>,
+            Palette: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>,
+        };
+
+        // --- Constants ---
+        const THEME_COLORS = {
+            dmBox: '#fdf6e3',
+            dmBorder: '#d4a017',
+            playerBox: '#e0f2f1',
+            playerBorder: '#4db6ac',
+            parchment: '#fcf5e5',
+            text: '#2b2b2b',
+        };
+
+        // --- Helper: Rich Text Editor Component ---
+        function RichTextEditor({ initialHtml, onChange }) {
+            const editorRef = useRef(null);
+            
+            useEffect(() => {
+                if (editorRef.current) editorRef.current.innerHTML = initialHtml;
+            }, []);
+
+            const handleInput = () => {
+                if (editorRef.current) onChange(editorRef.current.innerHTML);
+            };
+
+            const execCmd = (cmd, val = null) => {
+                document.execCommand(cmd, false, val);
+                handleInput();
+                if (editorRef.current) editorRef.current.focus();
+            };
+
+            const handleColorChange = (e) => {
+                execCmd('foreColor', e.target.value);
+            };
+
+            return (
+                <div className="flex flex-col gap-2 border border-gray-300 rounded overflow-hidden">
+                    <div className="flex items-center gap-1 bg-gray-50 p-1 border-b border-gray-200 flex-wrap">
+                        <button onClick={() => execCmd('bold')} className="p-1.5 hover:bg-gray-200 rounded text-gray-700" title="Bold"><Icons.Bold /></button>
+                        <button onClick={() => execCmd('italic')} className="p-1.5 hover:bg-gray-200 rounded text-gray-700" title="Italic"><Icons.Italic /></button>
+                        <button onClick={() => execCmd('underline')} className="p-1.5 hover:bg-gray-200 rounded text-gray-700" title="Underline"><Icons.Underline /></button>
+                        <div className="h-4 w-px bg-gray-300 mx-1"></div>
+                        <div className="flex items-center gap-1">
+                            <Icons.Palette />
+                            <input 
+                                type="color" 
+                                className="w-5 h-5 cursor-pointer border-0 p-0" 
+                                title="Text Color"
+                                onChange={handleColorChange}
+                            />
+                        </div>
+                    </div>
+                    <div 
+                        ref={editorRef}
+                        contentEditable
+                        onInput={handleInput}
+                        className="p-2 min-h-[100px] max-h-[200px] overflow-y-auto text-sm focus:outline-none bg-white rich-editor"
+                        style={{ whiteSpace: 'pre-wrap' }}
+                    />
+                </div>
+            );
+        }
+
+        // --- Main Component ---
+        function DndPageCreator() {
+            const [elements, setElements] = useState([
+                {
+                    id: 'title-1',
+                    type: 'heading',
+                    content: 'The Tomb of Code',
+                    x: 50, y: 40, width: 600, height: 'auto',
+                    style: { fontSize: '48px', fontFamily: '"Cinzel", serif', color: '#8b0000', textAlign: 'center', zIndex: 10 }
+                },
+                {
+                    id: 'dm-1',
+                    type: 'dm-box',
+                    content: 'As you enter the chamber, the smell of ozone and <font color="#d32f2f"><b>old coffee</b></font> fills the air.',
+                    x: 50, y: 120, width: 700, height: 'auto',
+                    style: { fontSize: '16px', fontFamily: '"IM Fell English", serif', zIndex: 5, 
+                        borderTop: false, borderRight: false, borderBottom: false, borderLeft: true, borderColor: THEME_COLORS.dmBorder }
+                }
+            ]);
+            const [selectedId, setSelectedId] = useState(null);
+            
+            // Interaction States
+            const [isDragging, setIsDragging] = useState(false);
+            const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+            const [resizing, setResizing] = useState(null); 
+            const [showGrid, setShowGrid] = useState(true);
+            
+            const canvasRef = useRef(null);
+            const fileInputRef = useRef(null);
+
+            // --- Handlers ---
+            const addElement = (type) => {
+                const id = `el-${Date.now()}`;
+                let newElement = {
+                    id, type, x: 50, y: 50, width: 300, height: 'auto',
+                    content: 'New Text',
+                    style: { fontSize: '16px', fontFamily: '"Lato", sans-serif', color: '#000', zIndex: elements.length + 1 }
+                };
+
+                if (type === 'heading') {
+                    newElement.content = 'New Heading';
+                    newElement.style = { ...newElement.style, fontSize: '32px', fontFamily: '"Cinzel", serif', color: '#8b0000', fontWeight: 'bold' };
+                    newElement.width = 500;
+                } else if (type === 'dm-box') {
+                    newElement.content = 'Read aloud text goes here...';
+                    newElement.style = { ...newElement.style, fontFamily: '"IM Fell English", serif',
+                        borderTop: false, borderRight: false, borderBottom: false, borderLeft: true, borderColor: THEME_COLORS.dmBorder };
+                    newElement.width = 600;
+                } else if (type === 'player-box') {
+                    newElement.content = 'Player instructions or stat block...';
+                    newElement.style = { ...newElement.style, fontFamily: '"Lato", sans-serif',
+                        borderTop: true, borderRight: true, borderBottom: true, borderLeft: true, borderColor: THEME_COLORS.playerBorder, borderStyle: 'dashed' };
+                    newElement.width = 400;
+                } else if (type === 'image') {
+                    newElement.content = ''; 
+                    newElement.width = 200;
+                    newElement.height = 200; 
+                } else if (type === 'table') {
+                    newElement.width = 500;
+                    newElement.style = { ...newElement.style, fontFamily: '"Lato", sans-serif', headerBg: '#4a5568', stripeColor: '#f1f5f9' };
+                    newElement.tableData = {
+                        headers: ['Name', 'Description'],
+                        rows: [['Buppido', 'Talkative derro'], ['Prince Derendil', 'Quaggoth prince']]
+                    };
+                }
+
+                const offset = elements.length * 10;
+                newElement.x += offset;
+                newElement.y += offset;
+
+                setElements([...elements, newElement]);
+                setSelectedId(id);
+            };
+
+            const duplicateElement = () => {
+                const el = elements.find(e => e.id === selectedId);
+                if (!el) return;
+                const id = `el-${Date.now()}`;
+                const newElement = JSON.parse(JSON.stringify(el)); // Deep copy
+                newElement.id = id;
+                newElement.x += 30; newElement.y += 30;
+                newElement.style.zIndex = elements.length + 1;
+                setElements([...elements, newElement]);
+                setSelectedId(id);
+            };
+
+            const handleMouseDown = (e, id) => {
+                e.stopPropagation(); 
+                setSelectedId(id);
+                setIsDragging(true);
+                const rect = e.currentTarget.getBoundingClientRect();
+                setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+            };
+
+            const handleResizeStart = (e, id) => {
+                e.stopPropagation(); e.preventDefault();
+                const el = elements.find(el => el.id === id);
+                setResizing({ id, startX: e.clientX, startWidth: el.width });
+            };
+
+            const handleMouseMove = (e) => {
+                if (!canvasRef.current) return;
+                if (resizing) {
+                    const deltaX = e.clientX - resizing.startX;
+                    const newWidth = Math.max(50, resizing.startWidth + deltaX); 
+                    setElements(prev => prev.map(el => el.id === resizing.id ? { ...el, width: newWidth } : el));
+                    return;
+                }
+                if (isDragging && selectedId) {
+                    const canvasRect = canvasRef.current.getBoundingClientRect();
+                    const x = e.clientX - canvasRect.left - dragOffset.x;
+                    const y = e.clientY - canvasRect.top - dragOffset.y;
+                    const snap = (val) => Math.round(val / 10) * 10;
+                    setElements(prev => prev.map(el => el.id === selectedId ? { ...el, x: snap(x), y: snap(y) } : el));
+                }
+            };
+
+            const handleMouseUp = () => {
+                setIsDragging(false);
+                setResizing(null);
+            };
+
+            const updateElement = (id, key, value) => {
+                setElements(prev => prev.map(el => el.id === id ? { ...el, [key]: value } : el));
+            };
+
+            const updateStyle = (id, styleKey, value) => {
+                setElements(prev => prev.map(el => el.id === id ? { ...el, style: { ...el.style, [styleKey]: value } } : el));
+            };
+
+            const updateTableData = (id, updateFn) => {
+                setElements(prev => prev.map(el => {
+                    if (el.id !== id) return el;
+                    const newData = { ...el.tableData };
+                    updateFn(newData);
+                    return { ...el, tableData: newData };
+                }));
+            };
+
+            const deleteElement = (id) => {
+                setElements(prev => prev.filter(el => el.id !== id));
+                setSelectedId(null);
+            };
+
+            const adjustZIndex = (id, action) => {
+                setElements(prev => prev.map(el => {
+                    if (el.id !== id) return el;
+                    let newZ = el.style.zIndex || 1;
+                    switch(action) {
+                        case 'front': newZ = 100; break;
+                        case 'back': newZ = 0; break;
+                        case 'up': newZ += 1; break;
+                        case 'down': newZ = Math.max(0, newZ - 1); break;
+                    }
+                    return { ...el, style: { ...el.style, zIndex: newZ }};
+                }));
+            };
+
+            const handleImageUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const id = `img-${Date.now()}`;
+                        const newElement = {
+                            id, type: 'image', x: 100, y: 100, width: 300, height: 'auto',
+                            content: reader.result, style: { zIndex: elements.length + 1 }
+                        };
+                        setElements([...elements, newElement]);
+                        setSelectedId(id);
+                        e.target.value = null; 
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const triggerPrint = () => {
+                setSelectedId(null);
+                setTimeout(() => window.print(), 100);
+            };
+
+            // --- Render Logic ---
+            const renderElement = (el) => {
+                const isSelected = selectedId === el.id;
+                let selectionStyle = isSelected ? { outline: '2px dashed #3b82f6', outlineOffset: '2px', zIndex: 100 } : {};
+                
+                let containerStyle = {
+                    position: 'absolute',
+                    left: `${el.x}px`, top: `${el.y}px`, width: `${el.width}px`,
+                    height: el.height === 'auto' ? 'auto' : `${el.height}px`,
+                    cursor: isDragging && isSelected ? 'grabbing' : 'grab',
+                    zIndex: el.style.zIndex || 1, 
+                    userSelect: 'none',
+                    backgroundColor: 'transparent',
+                    ...selectionStyle
+                };
+
+                let contentNode = null;
+                let className = "p-2 rounded ";
+
+                if (el.type === 'dm-box' || el.type === 'player-box') {
+                    className += "shadow-sm";
+                    containerStyle.backgroundColor = el.type === 'dm-box' ? THEME_COLORS.dmBox : THEME_COLORS.playerBox;
+                    
+                    // Dynamic Border Logic
+                    const borderColor = el.style.borderColor || '#000';
+                    const borderStyle = el.style.borderStyle || 'solid';
+                    const borderWidth = el.type === 'dm-box' ? '4px' : '1px';
+                    
+                    containerStyle.borderLeft = el.style.borderLeft ? `${borderWidth} ${borderStyle} ${borderColor}` : 'none';
+                    containerStyle.borderRight = el.style.borderRight ? `${borderWidth} ${borderStyle} ${borderColor}` : 'none';
+                    containerStyle.borderTop = el.style.borderTop ? `${borderWidth} ${borderStyle} ${borderColor}` : 'none';
+                    containerStyle.borderBottom = el.style.borderBottom ? `${borderWidth} ${borderStyle} ${borderColor}` : 'none';
+                    
+                    contentNode = <div style={{ ...el.style, whiteSpace: 'pre-wrap' }} className="w-full h-full outline-none rich-editor"
+                            dangerouslySetInnerHTML={{ __html: el.content }} />;
+                } 
+                else if (el.type === 'table') {
+                     contentNode = (
+                         <div className="w-full overflow-hidden rounded shadow-sm border border-gray-300 bg-white text-sm" style={{ fontFamily: el.style.fontFamily }}>
+                            <div className="flex font-bold text-white" style={{ backgroundColor: el.style.headerBg || '#4a5568' }}>
+                                {el.tableData.headers.map((h, i) => (
+                                    <div key={i} className="flex-1 p-2 border-r border-white/20 last:border-r-0">{h}</div>
+                                ))}
+                            </div>
+                            <div>
+                                {el.tableData.rows.map((row, rI) => (
+                                    <div key={rI} className="flex" style={{ backgroundColor: rI % 2 === 0 ? (el.style.stripeColor || '#f1f5f9') : 'white' }}>
+                                        {row.map((cell, cI) => (
+                                            <div key={cI} className="flex-1 p-2 border-r border-gray-200 last:border-r-0">{cell}</div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                         </div>
+                     );
+                }
+                else if (el.type === 'image') {
+                    contentNode = <img src={el.content || 'https://via.placeholder.com/150?text=Upload+Image'} alt="User content" className="w-full h-full object-cover pointer-events-none" />;
+                } 
+                else {
+                    // Text / Header
+                    contentNode = <div style={{ ...el.style, whiteSpace: 'pre-wrap' }} className="w-full h-full outline-none rich-editor"
+                            dangerouslySetInnerHTML={{ __html: el.content }} />;
+                }
+
+                return (
+                    <div key={el.id} style={containerStyle} className={className}
+                        onMouseDown={(e) => handleMouseDown(e, el.id)} onClick={(e) => e.stopPropagation()}>
+                        {isSelected && (
+                            <div className="absolute bottom-0 right-0 w-5 h-5 bg-blue-500 border-2 border-white rounded-sm cursor-ew-resize hover:bg-blue-600 shadow-md flex items-center justify-center"
+                                style={{ zIndex: 50, transform: 'translate(50%, 50%)' }}
+                                onMouseDown={(e) => handleResizeStart(e, el.id)}>
+                                <div className="flex gap-[1px]"><div className="w-[1px] h-2 bg-white opacity-50"></div><div className="w-[1px] h-2 bg-white opacity-50"></div></div>
+                            </div>
+                        )}
+                        {contentNode}
+                    </div>
+                );
+            };
+
+            const selectedElement = elements.find(el => el.id === selectedId);
+
+            return (
+                <div className="flex flex-col h-screen w-full bg-gray-100 font-sans text-gray-800 overflow-hidden">
+                    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 no-print z-20 shadow-sm">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-red-800 rounded flex items-center justify-center text-white"><Icons.LayoutTemplate /></div>
+                            <h1 className="text-xl font-bold text-gray-800 tracking-tight">Dungeon Drafter</h1>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <button onClick={() => setShowGrid(!showGrid)} className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${showGrid ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}>
+                                {showGrid ? 'Grid On' : 'Grid Off'}
+                            </button>
+                            <div className="h-6 w-px bg-gray-300 mx-2"></div>
+                            <button onClick={triggerPrint} className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-md shadow-sm transition-all">
+                                <Icons.Printer /> <span>Export PDF</span>
+                            </button>
+                        </div>
+                    </header>
+
+                    <main className="flex flex-1 overflow-hidden relative" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
+                        {/* Tools Sidebar */}
+                        <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-6 gap-4 no-print z-10 shadow-sm">
+                            <ToolButton icon={<Icons.Type />} label="Text" onClick={() => addElement('text')} />
+                            <ToolButton icon={<div className="font-serif font-bold text-lg">H</div>} label="Header" onClick={() => addElement('heading')} />
+                            <ToolButton icon={<Icons.Table />} label="Table" onClick={() => addElement('table')} />
+                            <div className="w-10 h-px bg-gray-200 my-1"></div>
+                            <ToolButton icon={<div className="w-4 h-4 bg-yellow-100 border border-yellow-400 rounded-sm"></div>} label="DM Note" onClick={() => addElement('dm-box')} />
+                            <ToolButton icon={<div className="w-4 h-4 bg-teal-50 border border-teal-400 border-dashed rounded-sm"></div>} label="Player" onClick={() => addElement('player-box')} />
+                            <div className="w-10 h-px bg-gray-200 my-1"></div>
+                            <ToolButton icon={<Icons.Image />} label="Image" onClick={() => fileInputRef.current.click()} />
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+                        </div>
+
+                        {/* Canvas */}
+                        <div className="flex-1 bg-gray-200 overflow-auto flex justify-center p-8 relative">
+                            <div ref={canvasRef} onClick={() => setSelectedId(null)} 
+                                className="canvas-area bg-white relative shadow-xl transition-transform origin-top"
+                                style={{
+                                    width: '794px', height: '1123px', minWidth: '794px', minHeight: '1123px',
+                                    backgroundColor: THEME_COLORS.parchment,
+                                    backgroundImage: `radial-gradient(${THEME_COLORS.parchment} 50%, transparent 100%),
+                                        repeating-linear-gradient(45deg, rgba(139, 69, 19, 0.03) 0px, rgba(139, 69, 19, 0.03) 1px, transparent 1px, transparent 10px),
+                                        repeating-linear-gradient(-45deg, rgba(139, 69, 19, 0.03) 0px, rgba(139, 69, 19, 0.03) 1px, transparent 1px, transparent 10px)`
+                                }}>
+                                {showGrid && (
+                                    <div className="absolute inset-0 pointer-events-none no-print" style={{
+                                        backgroundImage: 'linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)',
+                                        backgroundSize: '50px 50px'
+                                    }}></div>
+                                )}
+                                <div className="absolute inset-0 pointer-events-none opacity-10 mix-blend-multiply" style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+                                }}></div>
+                                {elements.map(renderElement)}
+                            </div>
+                        </div>
+
+                        {/* Properties Sidebar */}
+                        <div className="w-80 bg-white border-l border-gray-200 flex flex-col no-print z-10 shadow-sm">
+                            <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                                <h2 className="font-semibold text-gray-700 flex items-center gap-2"><Icons.Move /> Properties</h2>
+                                {selectedElement && (
+                                    <button onClick={duplicateElement} className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded">
+                                        <Icons.Copy /> Duplicate
+                                    </button>
+                                )}
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                                {selectedElement ? (
+                                    <>
+                                        <div className="space-y-3">
+                                            <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2">
+                                                <Icons.Layers /> Layers (Z: {selectedElement.style.zIndex || 1})
+                                            </label>
+                                            <div className="grid grid-cols-4 gap-1">
+                                                <button onClick={() => adjustZIndex(selectedElement.id, 'front')} className="p-1 bg-gray-100 hover:bg-gray-200 rounded border flex justify-center"><Icons.ChevronsUp size={12}/></button>
+                                                <button onClick={() => adjustZIndex(selectedElement.id, 'up')} className="p-1 bg-gray-100 hover:bg-gray-200 rounded border flex justify-center"><Icons.ArrowUp size={12}/></button>
+                                                <button onClick={() => adjustZIndex(selectedElement.id, 'down')} className="p-1 bg-gray-100 hover:bg-gray-200 rounded border flex justify-center"><Icons.ArrowDown size={12}/></button>
+                                                <button onClick={() => adjustZIndex(selectedElement.id, 'back')} className="p-1 bg-gray-100 hover:bg-gray-200 rounded border flex justify-center"><Icons.ChevronsDown size={12}/></button>
+                                            </div>
+                                        </div>
+
+                                        <hr className="border-gray-200" />
+
+                                        {/* Table Editor */}
+                                        {selectedElement.type === 'table' && (
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="text-xs font-bold text-gray-500 uppercase">Table Style</label>
+                                                    <div className="flex gap-2 mt-1">
+                                                        <div className="flex-1">
+                                                            <div className="text-[10px] text-gray-400">Header</div>
+                                                            <input type="color" className="w-full h-6 cursor-pointer" value={selectedElement.style.headerBg || '#4a5568'} 
+                                                                onChange={(e) => updateStyle(selectedElement.id, 'headerBg', e.target.value)} />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="text-[10px] text-gray-400">Stripes</div>
+                                                            <input type="color" className="w-full h-6 cursor-pointer" value={selectedElement.style.stripeColor || '#f1f5f9'} 
+                                                                onChange={(e) => updateStyle(selectedElement.id, 'stripeColor', e.target.value)} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label className="text-xs font-bold text-gray-500 uppercase">Structure</label>
+                                                    <div className="flex gap-2 mt-1 mb-2">
+                                                        <button onClick={() => updateTableData(selectedElement.id, d => d.rows.push(new Array(d.headers.length).fill('...')))} 
+                                                            className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs border border-blue-200">+ Row</button>
+                                                        <button onClick={() => updateTableData(selectedElement.id, d => d.rows.pop())} 
+                                                            className="px-2 py-1 bg-red-50 text-red-600 rounded text-xs border border-red-200">- Row</button>
+                                                        <button onClick={() => updateTableData(selectedElement.id, d => { d.headers.push('New'); d.rows.forEach(r => r.push('...')); })} 
+                                                            className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs border border-blue-200">+ Col</button>
+                                                        <button onClick={() => updateTableData(selectedElement.id, d => { if(d.headers.length > 1) { d.headers.pop(); d.rows.forEach(r => r.pop()); } })} 
+                                                            className="px-2 py-1 bg-red-50 text-red-600 rounded text-xs border border-red-200">- Col</button>
+                                                    </div>
+
+                                                    <div className="overflow-x-auto">
+                                                        <div className="space-y-1">
+                                                            <div className="flex gap-1">
+                                                                {selectedElement.tableData.headers.map((h, i) => (
+                                                                    <input key={i} className="w-20 p-1 text-xs border bg-gray-100 font-bold" value={h} 
+                                                                        onChange={(e) => updateTableData(selectedElement.id, d => d.headers[i] = e.target.value)} />
+                                                                ))}
+                                                            </div>
+                                                            {selectedElement.tableData.rows.map((row, rI) => (
+                                                                <div key={rI} className="flex gap-1">
+                                                                    {row.map((cell, cI) => (
+                                                                        <input key={cI} className="w-20 p-1 text-xs border" value={cell} 
+                                                                            onChange={(e) => updateTableData(selectedElement.id, d => d.rows[rI][cI] = e.target.value)} />
+                                                                    ))}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Box Borders & Content */}
+                                        {(selectedElement.type === 'dm-box' || selectedElement.type === 'player-box' || selectedElement.type === 'text' || selectedElement.type === 'heading') && (
+                                            <div className="space-y-3">
+                                                <label className="text-xs font-bold text-gray-500 uppercase">Content</label>
+                                                <RichTextEditor 
+                                                    key={selectedElement.id}
+                                                    initialHtml={selectedElement.content}
+                                                    onChange={(html) => updateElement(selectedElement.id, 'content', html)}
+                                                />
+                                            </div>
+                                        )}
+                                        
+                                        {(selectedElement.type === 'dm-box' || selectedElement.type === 'player-box') && (
+                                            <div className="space-y-3">
+                                                <label className="text-xs font-bold text-gray-500 uppercase">Border Settings</label>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-xs w-10">Color:</span>
+                                                    <input type="color" className="w-full h-6 cursor-pointer" value={selectedElement.style.borderColor || '#000000'}
+                                                        onChange={(e) => updateStyle(selectedElement.id, 'borderColor', e.target.value)} />
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    {['Top', 'Right', 'Bottom', 'Left'].map(side => (
+                                                        <label key={side} className="flex flex-col items-center cursor-pointer">
+                                                            <span className="text-[10px] text-gray-500">{side}</span>
+                                                            <input type="checkbox" checked={selectedElement.style[`border${side}`] === true}
+                                                                onChange={(e) => updateStyle(selectedElement.id, `border${side}`, e.target.checked)} />
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <hr className="border-gray-200" />
+
+                                        <div className="space-y-3">
+                                            <label className="text-xs font-bold text-gray-500 uppercase">Appearance</label>
+                                            <div>
+                                                <div className="flex justify-between text-xs mb-1">
+                                                    <span>Width</span><span>{selectedElement.width}px</span>
+                                                </div>
+                                                <input type="range" min="50" max="750" value={selectedElement.width} 
+                                                    onChange={(e) => updateElement(selectedElement.id, 'width', parseInt(e.target.value))} className="w-full" />
+                                            </div>
+
+                                            {selectedElement.type !== 'image' && (
+                                                <>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm w-16">Size</span>
+                                                        <select className="flex-1 p-1 border rounded" value={selectedElement.style.fontSize}
+                                                            onChange={(e) => updateStyle(selectedElement.id, 'fontSize', e.target.value)}>
+                                                            <option value="12px">12px (Small)</option>
+                                                            <option value="16px">16px (Normal)</option>
+                                                            <option value="20px">20px (Large)</option>
+                                                            <option value="32px">32px (Title)</option>
+                                                            <option value="48px">48px (Huge)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm w-16">Font</span>
+                                                        <select className="flex-1 p-1 border rounded" value={selectedElement.style.fontFamily}
+                                                            onChange={(e) => updateStyle(selectedElement.id, 'fontFamily', e.target.value)}>
+                                                            <option value='"Lato", sans-serif'>Simple (Lato)</option>
+                                                            <option value='"Cinzel", serif'>Fantasy Title (Cinzel)</option>
+                                                            <option value='"IM Fell English", serif'>Old Book (Fell)</option>
+                                                        </select>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        <button onClick={() => deleteElement(selectedElement.id)}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2 mt-4 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors">
+                                            <Icons.Trash2 /> Delete Element
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-center">
+                                        <div className="opacity-20"><Icons.Move /></div>
+                                        <p className="text-sm mt-4">Select an element to edit.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        function ToolButton({ icon, label, onClick }) {
+            return (
+                <button onClick={onClick} className="flex flex-col items-center justify-center gap-1 w-16 h-16 rounded-lg text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all group">
+                    <div className="group-hover:scale-110 transition-transform">{icon}</div>
+                    <span className="text-[10px] font-medium">{label}</span>
+                </button>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<DndPageCreator />);
+    </script>
+</body>
+</html>

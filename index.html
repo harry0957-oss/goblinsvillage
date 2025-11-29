@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Goblin's Village</title>
+    <!-- Favicon Link -->
+    <link rel="icon" href="https://goblinsvillage.com/homeassets/goblinfavicon.png" type="image/png">
+    
+    <style>
+        /* --- FONTS & FUNDAMENTALS --- */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap');
+        /* Import FontAwesome for Social Icons */
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+
+        :root {
+            --goblin-gold: #ffcc00;
+            --goblin-dark: #1a1a1a;
+            --goblin-green-banner: #0a140a; /* The Dark Green/Black color */
+            --goblin-parchment-text: #2b1d0e;
+        }
+
+        body {
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        .goblin-ui-wrapper {
+            font-family: 'Lato', sans-serif;
+            color: #ddd;
+            max-width: 100%;
+            overflow-x: hidden;
+            /* Main background image applied here so it shows at the very top */
+            background-image: url('https://goblinsvillage.com/homeassets/background.png');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: top center;
+        }
+
+        /* --- SECTION 1: THE HUD MENU (Top Banner) --- */
+        .goblin-menu-container {
+            position: relative;
+            text-align: center;
+            padding-top: 40px; 
+            padding-bottom: 40px; 
+            z-index: 10;
+            /* No background color here, letting the wrapper's stone wall show at the very top */
+        }
+
+        /* THE SOLID COLOR BAND (Sits between Topbar and Midbar) */
+        .banner-solid-fill {
+            position: absolute;
+            bottom: 0; 
+            left: 0;
+            right: 0;
+            /* This height fills the space from the Midbar up to the Topbar */
+            height: 80px; 
+            background-color: var(--goblin-green-banner);
+            z-index: 5;
+        }
+
+        /* TOP BAR (The Line Behind Buttons) */
+        .banner-top-bar {
+            position: absolute;
+            /* Adjusted to sit behind the middle of the buttons */
+            bottom: 55px; 
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 50px; 
+            background-image: url('https://goblinsvillage.com/homeassets/topbar.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 15; /* Above the solid fill */
+        }
+
+        /* BOTTOM DIVIDER (The Midbar) */
+        .banner-midbar-divider {
+            position: absolute;
+            bottom: -20px; 
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 40px; 
+            background-image: url('https://goblinsvillage.com/homeassets/midbar.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 25; 
+        }
+
+        .goblin-logo {
+            max-width: 300px;
+            width: 80%;
+            margin: 0 auto 10px auto;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.9));
+            display: block;
+            position: relative;
+            z-index: 30; 
+        }
+
+        .goblin-icon-grid {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px; 
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 20; 
+        }
+
+        .goblin-nav-item {
+            flex: 0 0 auto; 
+            width: 120px;
+            text-align: center;
+            transition: transform 0.2s ease;
+            text-decoration: none !important;
+            position: relative;
+        }
+
+        .goblin-nav-item:hover {
+            transform: translateY(-8px);
+        }
+
+        .goblin-nav-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin-bottom: 2px;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+        }
+
+        .goblin-nav-label {
+            font-family: 'Cinzel', serif;
+            color: var(--goblin-gold);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            text-shadow: 2px 2px 0 #000;
+            display: block;
+            padding: 2px 0;
+            position: relative;
+            z-index: 21;
+        }
+
+        /* --- SECTION 2: THE TOWN SQUARE (Content) --- */
+        .goblin-town-square {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 80px 10px 100px; 
+            /* Removed background-image here since it is now on the wrapper */
+            background-color: transparent; 
+            align-items: flex-start;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        /* Page Bottom Bar (Decoration below content) */
+        .page-bottom-decoration {
+            position: absolute;
+            bottom: 0; /* Align to very bottom of the stone wall section */
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 40px; 
+            background-image: url('https://goblinsvillage.com/homeassets/bottombar.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: bottom center;
+            z-index: 30; /* UPDATED: Increased Z-Index to sit ON TOP of the green footer banner */
+            /* Optional: push it down slightly if you want it to overlap the green banner */
+            transform: translateY(20px); 
+        }
+
+        /* --- SECTION 3: THE FOOTER BANNER (Green Band) --- */
+        .goblin-footer-banner {
+            background-color: var(--goblin-green-banner);
+            /* Ensure it sits below the bottom bar decoration */
+            padding: 40px 40px 20px; /* Top padding accounts for the overlapping bar */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 5;
+            border-top: 2px solid #000;
+        }
+
+        .footer-links a {
+            color: #aaa;
+            font-family: 'Cinzel', serif;
+            text-decoration: none;
+            margin-right: 20px;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--goblin-gold); }
+
+        .footer-socials a {
+            color: var(--goblin-gold); /* Matching button text color */
+            font-size: 1.4rem;
+            margin-left: 15px;
+            text-decoration: none;
+            transition: transform 0.2s, color 0.2s;
+        }
+        .footer-socials a:hover { 
+            color: #fff; 
+            transform: scale(1.2);
+        }
+
+        /* Side Columns */
+        .town-col-side {
+            flex: 0 0 200px; 
+            max-width: 200px; 
+            position: relative;
+            text-align: center;
+            padding: 45px 20px; 
+        }
+
+        /* Specific Background for the Shop/Ad Column */
+        .shop-bg {
+            background-color: rgba(20, 10, 5, 0.8); 
+            border-radius: 8px; 
+            z-index: 1; 
+        }
+        
+        .town-col-side .goblin-frame-bg { z-index: 2; }
+        .town-col-side .side-content { z-index: 3; }
+
+        /* THE CSS FRAME BUILDER */
+        .goblin-frame-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+        }
+        
+        .frame-top {
+            position: absolute; top: 0; left: 0; right: 0; height: 35px;
+            background-image: url('https://goblinsvillage.com/homeassets/frametop.png');
+            background-size: 100% 100%;
+        }
+        .frame-bottom {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 35px; 
+            background-image: url('https://goblinsvillage.com/homeassets/framebottom.png');
+            background-size: 100% 100%;
+        }
+        .frame-left {
+            position: absolute; top: 0; bottom: 0; left: 0; width: 15px; 
+            background-image: url('https://goblinsvillage.com/homeassets/frameleft.png');
+            background-size: 100% 100%;
+        }
+        .frame-right {
+            position: absolute; top: 0; bottom: 0; right: 0; width: 15px; 
+            background-image: url('https://goblinsvillage.com/homeassets/frameright.png');
+            background-size: 100% 100%;
+        }
+
+        /* Center Column (The Scroll) */
+        .town-col-center {
+            flex: 1;
+            min-width: 320px;
+            max-width: 700px;
+            position: relative;
+        }
+
+        .parchment-box {
+            background-image: url('https://goblinsvillage.com/homeassets/parchment.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            padding: 70px 60px;
+            min-height: 550px;
+            color: var(--goblin-parchment-text);
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.7));
+        }
+
+        /* Content Styling */
+        .side-content { position: relative; }
+
+        .side-content-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem; 
+            color: var(--goblin-gold);
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 0 #000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ad-image {
+            width: 100%;
+            display: block;
+            transition: opacity 0.2s;
+            border: 1px solid #555;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+            margin-bottom: 10px;
+        }
+        .ad-image:hover { opacity: 0.9; }
+
+        .goblin-btn {
+            background-color: #8b0000;
+            color: #ffcc00;
+            border: 1px solid #d4af37;
+            padding: 8px 15px;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 10px;
+            display: inline-block;
+            text-decoration: none;
+            box-shadow: 0 4px 0 #550000;
+            transition: all 0.1s;
+            font-size: 0.8rem;
+        }
+        .goblin-btn:hover { 
+            background-color: #a30000; 
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #550000;
+            color: white;
+        }
+
+        .news-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            border-bottom: 2px solid #5c401d;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 700;
+            color: #2b1d0e;
+            text-transform: uppercase;
+        }
+
+        .news-item h3 {
+            font-family: 'Cinzel', serif;
+            margin-bottom: 5px;
+            font-size: 1.3rem;
+            color: #4a3c31;
+            font-weight: bold;
+        }
+        .news-item p {
+            color: #2b1d0e;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .goblin-input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #555;
+            background: #1a1a1a;
+            color: #ddd;
+            font-family: 'Lato', sans-serif;
+            box-sizing: border-box;
+            font-size: 0.8rem;
+        }
+
+        /* MOBILE RESPONSIVENESS */
+        @media (max-width: 768px) {
+            .goblin-menu-container { padding-top: 20px; }
+            
+            .banner-top-bar {
+                bottom: 45px; 
+                height: 40px;
+            }
+            
+            .banner-solid-fill {
+                height: 70px; 
+            }
+
+            .goblin-icon-grid { gap: 5px; }
+            .goblin-nav-item { width: 30% !important; min-width: 90px; }
+            .goblin-nav-label { font-size: 0.6rem; }
+            
+            .goblin-town-square {
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 10px 40px; /* Reduced bottom padding */
+            }
+            
+            .town-col-side {
+                width: 90%; 
+                max-width: none;
+                flex: none;
+                margin-bottom: 20px;
+                padding: 40px 30px; 
+            }
+            
+            .town-col-center {
+                width: 100%;
+                padding: 0;
+                order: -1; 
+                margin-bottom: 20px;
+            }
+            
+            .parchment-box {
+                padding: 50px 30px; 
+                background-size: 100% 100%;
+            }
+
+            .goblin-footer-banner {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+                padding: 40px 20px 30px;
+            }
+            .footer-links a { margin: 0 10px; }
+            .footer-socials a { margin: 0 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="goblin-ui-wrapper">
+
+        <!-- HUD NAVIGATION with Banner Background -->
+        <div class="goblin-menu-container">
+            
+            <!-- Logo -->
+            <img src="https://goblinsvillage.com/homeassets/logo.png" class="goblin-logo" alt="The Goblin's Village">
+            
+            <!-- The Top Bar -->
+            <div class="banner-top-bar"></div>
+
+            <!-- The Solid Fill -->
+            <div class="banner-solid-fill"></div>
+
+            <!-- The Icons -->
+            <div class="goblin-icon-grid">
+                <a href="#" class="goblin-nav-item">
+                    <img src="https://goblinsvillage.com/homeassets/resources.png" class="goblin-nav-img">
+                    <span class="goblin-nav-label">Resources</span>
+                </a>
+                <a href="#" class="goblin-nav-item">
+                    <img src="https://goblinsvillage.com/homeassets/rules.png" class="goblin-nav-img">
+                    <span class="goblin-nav-label">Rules</span>
+                </a>
+                <a href="#" class="goblin-nav-item">
+                    <img src="https://goblinsvillage.com/homeassets/kit.png" class="goblin-nav-img">
+                    <span class="goblin-nav-label">Kit</span>
+                </a>
+                <a href="/loot.html" class="goblin-nav-item">
+                    <img src="https://goblinsvillage.com/homeassets/generators.png" class="goblin-nav-img">
+                    <span class="goblin-nav-label">Generators</span>
+                </a>
+                <a href="/necrotic-sacrament" class="goblin-nav-item">
+                    <img src="https://goblinsvillage.com/homeassets/modules.png" class="goblin-nav-img">
+                    <span class="goblin-nav-label">Modules</span>
+                </a>
+                <a href="#" class="goblin-nav-item">
+                    <img src="https://goblinsvillage.com/homeassets/one-shots.png" class="goblin-nav-img">
+                    <span class="goblin-nav-label">One-Shots</span>
+                </a>
+            </div>
+
+            <!-- The Midbar Divider -->
+            <div class="banner-midbar-divider"></div>
+        </div>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="goblin-town-square">
+
+            <!-- LEFT: ADVERTISEMENT FRAME with Shop Background -->
+            <div class="town-col-side shop-bg">
+                <!-- Frame Layers -->
+                <div class="goblin-frame-bg">
+                    <div class="frame-center"></div>
+                    <div class="frame-top"></div>
+                    <div class="frame-bottom"></div>
+                    <div class="frame-left"></div>
+                    <div class="frame-right"></div>
+                </div>
+
+                <!-- Content -->
+                <div class="side-content">
+                    <h4 class="side-content-title">LIMITED EDITION</h4>
+                    <a href="#">
+                        <img src="https://goblinsvillage.com/homeassets/dice_ad.jpg" class="ad-image" alt="Goblin Dice">
+                    </a>
+                    <p style="font-size:0.8rem; color:#aaa; margin-top:10px; margin-bottom:10px;">Hand-carved from "ethically sourced" bones.</p>
+                    <a href="#" class="goblin-btn">Visit Shop</a>
+                </div>
+            </div>
+
+            <!-- CENTER: THE SCROLL -->
+            <div class="town-col-center">
+                <div class="parchment-box">
+                    <h2 class="news-title">Goblin Tales & News</h2>
+                    
+                    <div class="news-item">
+                        <h3>New One-Shot: "Festering Caverns"</h3>
+                        <p>The <em>Necrotic Sacrament</em> is live! Survivors report a smell of rotted flowers and a distinct lack of grain in the silo. Download it before the guards find out.</p>
+                    </div>
+                    <hr style="border-color:#5c401d; opacity:0.3; margin: 20px 0;">
+                    
+                    <div class="news-item">
+                        <h3>Generator Update: More Chaos!</h3>
+                        <p>The Tech Goblins have fixed the Loot Orb. It now curses 20% more effectively. Please do not tap on the glass, it upsets the spirits inside.</p>
+                    </div>
+                    <hr style="border-color:#5c401d; opacity:0.3; margin: 20px 0;">
+
+                    <div class="news-item">
+                        <h3>Village Status</h3>
+                        <p><strong>Threat Level:</strong> Low<br>
+                        <strong>Weather:</strong> Gloomy<br>
+                        <strong>Ale Supplies:</strong> Critical</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: NEWSLETTER FRAME -->
+            <div class="town-col-side" style="background-color:rgba(0,0,0,0.5); border-radius:8px;">
+                <!-- Frame Layers -->
+                <div class="goblin-frame-bg">
+                    <div class="frame-center"></div>
+                    <div class="frame-top"></div>
+                    <div class="frame-bottom"></div>
+                    <div class="frame-left"></div>
+                    <div class="frame-right"></div>
+                </div>
+
+                <!-- Content -->
+                <div class="side-content">
+                    <h3 class="side-content-title">JOIN THE HORDE!</h3>
+                    <p style="font-size:0.8rem; margin-bottom:15px; color:#ccc;">Subscribe for exclusive content, free assets, and warnings about incoming raids.</p>
+                    
+                    <!-- MAILERLITE FORM -->
+                    <form action="https://assets.mailerlite.com/jsonp/YOUR_ID/forms/YOUR_FORM_ID/subscribe" method="post" target="_blank" style="padding:0 5px;">
+                        <input type="email" name="fields[email]" class="goblin-input" placeholder="Your Email Address" required>
+                        <button type="submit" class="goblin-btn" style="width:100%; margin-top:5px;">Sign Up</button>
+                        <p style="font-size:0.65rem; color:#666; margin-top:8px;">No spam. Only loot.</p>
+                    </form>
+                    
+                    <img src="https://goblinsvillage.com/homeassets/goblin_mascot_small.png" style="width:70%; opacity:0.9; margin-top:15px;" alt="Goblin Mascot">
+                </div>
+            </div>
+
+            <!-- Page Bottom Decoration -->
+            <div class="page-bottom-decoration"></div>
+
+        </div>
+
+        <!-- FOOTER BANNER -->
+        <div class="goblin-footer-banner">
+            <div class="footer-links">
+                <a href="#">About Us</a>
+                <a href="#">Contact</a>
+                <a href="#">Terms</a>
+            </div>
+            <div class="footer-socials">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a> <!-- Assuming X icon class, using Twitter for now or 'x-twitter' if using newer FA -->
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+                <a href="#"><i class="fab fa-tiktok"></i></a>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
