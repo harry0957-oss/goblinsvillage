@@ -1,0 +1,8 @@
+{
+  "_comment": "Towns or locales. Add tags like city/coastal to influence trait selection.",
+  "towns": [
+    { "id": "baldurs_gate", "label": "Baldur's Gate", "tags": ["city", "coastal"] },
+    { "id": "neverwinter", "label": "Neverwinter", "tags": ["city", "cold"] },
+    { "id": "redbrook", "label": "Redbrook", "tags": ["village", "rural"] }
+  ]
+}
