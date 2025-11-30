@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Goblin's Village – Dice Roller</title>
+    <!-- Favicon Link -->
+    <link rel="icon" href="https://goblinsvillage.com/homeassets/goblinfavicon.png" type="image/png">
+
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="goblin-ui-wrapper">
+        <div id="site-header"></div>
+
+        <main>
+            <div class="goblin-town-square">
+                <div class="town-col-center" style="width:100%; max-width:1300px;">
+                    <div class="parchment-box dice-roller-shell">
+                        <section class="page-hero">
+                            <h1 class="news-title">Dice Roller</h1>
+                            <p>Throw physical dice in your browser with a top-down view and goblin flair.</p>
+                        </section>
+
+                        <div class="dice-stage">
+                            <div id="dice-canvas-container" class="dice-canvas"></div>
+                            <div class="dice-ui-bar">
+                                <div class="dice-buttons">
+                                    <button class="goblin-btn" data-die="d4">D4</button>
+                                    <button class="goblin-btn" data-die="d6">D6</button>
+                                    <button class="goblin-btn" data-die="d8">D8</button>
+                                    <button class="goblin-btn" data-die="d10">D10</button>
+                                    <button class="goblin-btn" data-die="d12">D12</button>
+                                    <button class="goblin-btn" data-die="d20">D20</button>
+                                    <button class="goblin-btn" data-die="d100">D100</button>
+                                    <button class="ghost-btn" id="dice-clear">Clear</button>
+                                </div>
+                                <div class="dice-modes">
+                                    <label><input type="radio" name="roll-mode" value="normal" checked> Normal</label>
+                                    <label><input type="radio" name="roll-mode" value="advantage"> Advantage</label>
+                                    <label><input type="radio" name="roll-mode" value="disadvantage"> Disadvantage</label>
+                                </div>
+                                <div class="dice-result" id="dice-result">Ready to roll.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
+    </div>
+
+    <script src="assets/js/layout.js"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+        "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+      }
+    }
+    </script>
+    <script type="module">
+      import { initDiceRoller } from "./js/dice-roller.js";
+
+      const container = document.getElementById("dice-canvas-container");
+      initDiceRoller(container);
+    </script>
+</body>
+</html>
