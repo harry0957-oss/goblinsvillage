@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goblin's Village - One Shots</title>
+    <!-- Favicon Link -->
+    <link rel="icon" href="https://goblinsvillage.com/homeassets/goblinfavicon.png" type="image/png">
+
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="goblin-ui-wrapper">
+        <div id="site-header"></div>
+
+        <main>
+            <div class="goblin-town-square">
+                <div class="town-col-center" style="width:100%; max-width:1300px;">
+                    <div class="parchment-box">
+                        <section class="page-hero">
+                            <h1 class="news-title">One Shot Adventures</h1>
+                            <p>Discover a growing trove of free and premium one shot adventures crafted for daring DnD parties.</p>
+                        </section>
+
+                        <div class="oneshot-grid" style="display:grid; gap:20px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top:20px;">
+                            <div class="oneshot-card" style="background: rgba(255,255,255,0.8); border: 1px solid #c9ad77; box-shadow: inset 0 0 0 2px #f5e6c5; padding: 16px; border-radius: 8px;">
+                                <h3 style="margin-top: 0;">The Druid Is Dying</h3>
+                                <p style="margin: 10px 0 16px;">A desperate woodland plea leads the party to a grove full of secrets and thorny choices.</p>
+                                <button class="goblin-btn" style="width:100%;">Download coming soon</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
+    </div>
+
+    <script src="assets/js/layout.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const header = document.getElementById('site-header');
+        const markActive = () => {
+          const items = header ? header.querySelectorAll('.goblin-nav-item') : [];
+          items.forEach(item => {
+            const label = item.querySelector('.goblin-nav-label');
+            if (label && label.textContent.trim().toLowerCase() === 'one-shots') {
+              item.classList.add('nav-active');
+            }
+          });
+        };
+
+        const observer = new MutationObserver((mutations, obs) => {
+          if (header && header.querySelector('.goblin-nav-item')) {
+            markActive();
+            obs.disconnect();
+          }
+        });
+
+        if (header) {
+          observer.observe(header, { childList: true, subtree: true });
+        }
+
+        markActive();
+      });
+    </script>
+</body>
+</html>
